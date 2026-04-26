@@ -54,6 +54,20 @@ db.serialize(() => {
     );
   `);
 
+  // ORDER ITEMS TABLE
+  // Stores each product line inside an order.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS order_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id INTEGER NOT NULL,
+      product_id INTEGER NOT NULL,
+      quantity INTEGER NOT NULL,
+      price_at_purchase REAL NOT NULL,
+      FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+      FOREIGN KEY (product_id) REFERENCES products(id)
+    );
+  `);
+
   // Real gadget catalog for presentation/demo use.
   const realProducts = [
     // Laptops & Computers
