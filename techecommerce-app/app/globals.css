@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: white;
+    color: rgb(0, 0, 0);
+  }
+}
