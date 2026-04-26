@@ -80,6 +80,50 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+app.post("/api/login", (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "email and password are required." });
+  }
+
+  db.get(
+    "SELECT id, username, email, password_hash FROM users WHERE email = ?",
+    [email],
+    async (error, userRow) => {
+      if (error) {
+        return res.status(500).json({ error: "Failed to process login." });
+      }
+
+      if (!userRow) {
+        return res.status(401).json({ error: "Invalid email or password." });
+      }
+
+      try {
+        const passwordMatches = await bcrypt.compare(
+          password,
+          userRow.password_hash
+        );
+
+        if (!passwordMatches) {
+          return res.status(401).json({ error: "Invalid email or password." });
+        }
+
+        return res.status(200).json({
+          message: "Login successful.",
+          user: {
+            id: userRow.id,
+            username: userRow.username,
+            email: userRow.email,
+          },
+        });
+      } catch (_compareError) {
+        return res.status(500).json({ error: "Failed to process login." });
+      }
+    }
+  );
+});
+
 // Returns a single order plus all of its line items.
 app.get("/api/orders/:id", (req, res) => {
   const orderId = Number(req.params.id);
