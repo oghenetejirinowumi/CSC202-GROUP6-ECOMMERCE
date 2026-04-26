@@ -122,18 +122,33 @@ db.serialize(() => {
     VALUES (?, ?, ?, ?, ?);
   `);
 
-  realProducts.forEach((product) => {
-    const imageUrl = `https://placehold.co/600x400/2a2a2a/ffffff?text=${encodeURIComponent(product.name)}`;
-    insertProduct.run(product.name, product.desc, product.price, product.stock, imageUrl);
-  });
-
-  insertProduct.finalize((finalizeError) => {
-    if (finalizeError) {
-      console.error("Error inserting sample products:", finalizeError.message);
+  // Refresh products so rerunning this script always reflects the latest list.
+  db.run("DELETE FROM products;", (deleteError) => {
+    if (deleteError) {
+      console.error("Error clearing products table:", deleteError.message);
       process.exitCode = 1;
       return;
     }
-    console.log("Database initialized and sample gadgets inserted.");
+
+    realProducts.forEach((product) => {
+      const imageUrl = `https://placehold.co/600x400/2a2a2a/ffffff?text=${encodeURIComponent(product.name)}`;
+      insertProduct.run(
+        product.name,
+        product.desc,
+        product.price,
+        product.stock,
+        imageUrl
+      );
+    });
+
+    insertProduct.finalize((finalizeError) => {
+      if (finalizeError) {
+        console.error("Error inserting products:", finalizeError.message);
+        process.exitCode = 1;
+        return;
+      }
+      console.log("Products table refreshed and seeded successfully.");
+    });
   });
 });
 
