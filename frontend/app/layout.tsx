@@ -7,7 +7,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html suppressHydrationWarning lang="en">
       <body className="bg-white antialiased">
         <Navbar />
         {/* Everything from page.tsx goes inside {children} */}

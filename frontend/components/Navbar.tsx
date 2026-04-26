@@ -10,7 +10,7 @@ const Navbar = () => {
                     <Menu size={30} className="text-gray-800" />
                 </button>
                 <span className="text-5xl font-bold tracking-tight text-black">
-                    Teknova
+                    Teckvora
                 </span>
             </div>
 
