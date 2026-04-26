@@ -1,11 +1,10 @@
 interface ProductCardProps {
-  key: number;
   name: string;
   price: number;
   image: string;
 }
 
-const ProductCard = ({key,name, price, image }: ProductCardProps) => {
+const ProductCard = ({ name, price, image }: ProductCardProps) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-200 hover:scale-105">
       <div className="relative w-full h-48 overflow-hidden bg-gray-100">
