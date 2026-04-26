@@ -5,7 +5,7 @@ interface ProductCardProps {
   image: string;
 }
 
-const ProductCart = ({key,name, price, image }: ProductCardProps) => {
+const ProductCard = ({key,name, price, image }: ProductCardProps) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-200 hover:scale-105">
       <div className="relative w-full h-48 overflow-hidden bg-gray-100">
@@ -27,4 +27,4 @@ const ProductCart = ({key,name, price, image }: ProductCardProps) => {
   );
 };
 
-export default ProductCart;
+export default ProductCard;
