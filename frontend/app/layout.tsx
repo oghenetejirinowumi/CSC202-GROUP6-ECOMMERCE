@@ -1,17 +1,20 @@
+import { Roboto } from "next/font/google";
 import "./globals.css";
-import Navbar from "../components/Navbar"; // Ensure this path is correct
+import Navbar from "@/components/Navbar";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const roboto = Roboto({ weight: ["400", "700"], subsets: ["latin"] });
+
+export const metadata = {
+  title: "Next.js course",
+  description: "Code with Sloba Next.js Course",
+};
+
+export default function RootLayout({ children }) {
   return (
-    <html suppressHydrationWarning lang="en">
-      <body className="bg-white antialiased">
+    <html lang="en">
+      <body className={roboto.className}>
         <Navbar />
-        {/* Everything from page.tsx goes inside {children} */}
-        {children}
+        <main className= "py-20 max-w-6xl mx-auto" >{children}</main>
       </body>
     </html>
   );
