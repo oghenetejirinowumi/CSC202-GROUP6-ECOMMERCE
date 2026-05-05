@@ -1,9 +1,9 @@
 "use client";
 
 import { X, ShoppingCart } from "lucide-react";
+import Link from "next/link";  {/* ✅ import goes at the top */}
 
 const CartDrawer = ({ isOpen, onClose }) => {
-    // this will later be replaced with real cart items
     const cartItems = [];
 
     return (
@@ -11,12 +11,12 @@ const CartDrawer = ({ isOpen, onClose }) => {
             {/* Overlay */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                    className="fixed inset-0 bg-black/30 z-40"
                     onClick={onClose}
                 />
             )}
 
-            {/* Drawer Panel — slides in from the RIGHT */}
+            {/* Drawer Panel */}
             <div className={`fixed top-0 right-0 h-full w-80 bg-white z-50 shadow-xl transform transition-transform duration-300 ${
                 isOpen ? "translate-x-0" : "translate-x-full"
             }`}>
@@ -35,13 +35,11 @@ const CartDrawer = ({ isOpen, onClose }) => {
                 {/* Cart Items */}
                 <div className="p-4">
                     {cartItems.length === 0 ? (
-                        // Empty cart message
                         <div className="flex flex-col items-center justify-center h-64 text-gray-400">
                             <ShoppingCart size={48} />
                             <p className="mt-4 text-lg">Your cart is empty</p>
                         </div>
                     ) : (
-                        // Cart items will go here later
                         <ul>
                             {cartItems.map((item) => (
                                 <li key={item.id}>{item.name}</li>
@@ -52,9 +50,12 @@ const CartDrawer = ({ isOpen, onClose }) => {
 
                 {/* Footer — Checkout Button */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-                    <button className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors font-medium">
+                    <Link
+                        href="/checkout"
+                        className="block w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors font-medium text-center"
+                    >
                         Checkout
-                    </button>
+                    </Link>
                 </div>
 
             </div>
