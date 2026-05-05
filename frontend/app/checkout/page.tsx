@@ -19,7 +19,7 @@ const CheckoutPage = () => {
             {/* Total */}
             <div className="flex justify-between items-center border-t pt-4 mb-6">
                 <span className="text-xl font-semibold">Total</span>
-                <span className="text-xl font-bold">$0.00</span>
+                <span className="text-xl font-bold">N0.00</span>
             </div>
 
             {/* Proceed to Pay */}
