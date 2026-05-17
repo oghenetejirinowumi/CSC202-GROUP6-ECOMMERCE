@@ -1,18 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Menu, Search, ShoppingCart, User } from "lucide-react";
 import MenuDrawer from "./Menu";
-import CartDrawer from "./cart";  // ✅ import it
+import CartDrawer from "./cart";
 
 const Navbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [cartOpen, setCartOpen] = useState(false);  // ✅ add this
+    const [cartOpen, setCartOpen] = useState(false);
 
     return (
         <>
             <MenuDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
-            <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />  {/* ✅ add this */}
+            <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
 
             <nav className="w-full h-25 bg-white border-b border-gray-200 shadow-lg px-6 flex items-center justify-between sticky top-0 z-30">
 
@@ -44,10 +45,10 @@ const Navbar = () => {
                 {/* RIGHT: Cart + User */}
                 <div className="flex items-center gap-6">
 
-                    {/* Cart — opens CartDrawer on click */}
+                    {/* Cart */}
                     <div
                         className="flex flex-col items-center gap-0 cursor-pointer"
-                        onClick={() => setCartOpen(true)}  // ✅ opens cart drawer
+                        onClick={() => setCartOpen(true)}
                     >
                         <div className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
                             <ShoppingCart size={30} className="text-gray-800" />
@@ -59,12 +60,14 @@ const Navbar = () => {
                     </div>
 
                     {/* User */}
-                    <div className="flex flex-col items-center gap-0">
-                        <div className="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors">
-                            <User size={30} className="text-gray-800" />
+                    <Link href="/profile">
+                        <div className="flex flex-col items-center gap-0 cursor-pointer">
+                            <div className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
+                                <User size={30} className="text-gray-800" />
+                            </div>
+                            <span className="text-lg tracking-tight text-black">User</span>
                         </div>
-                        <span className="text-lg tracking-tight text-black">User</span>
-                    </div>
+                    </Link>
 
                 </div>
 
