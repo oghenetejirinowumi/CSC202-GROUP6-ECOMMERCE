@@ -19,7 +19,7 @@ export default function SmartwatchesPage() {
         display: 'flex', 
         gap: '15px', 
         justifyContent: 'center',
-        marginBottom: '20px' 
+        marginBottom: '40px' 
       }}>
         {/* Sort Button */}
         <div style={{ position: 'relative' }}>
@@ -110,6 +110,32 @@ export default function SmartwatchesPage() {
           <p>Filter options coming soon</p>
         </div>
       )}
+
+      {/* Product Placeholder Grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+        gap: '20px',
+        paddingTop: '20px'
+      }}>
+        {Array.from({ length: 16 }).map((_, index) => (
+          <div 
+            key={index}
+            style={{
+              backgroundColor: '#a6abb3',
+              borderRadius: '12px',
+              height: '250px',
+              cursor: 'pointer',
+              transition: 'transform 0.2s',
+              hover: {
+                transform: 'scale(1.05)'
+              }
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          />
+        ))}
+      </div>
     </div>
   );
 }
