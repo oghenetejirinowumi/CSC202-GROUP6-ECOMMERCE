@@ -69,6 +69,11 @@ web_modules/
 .env
 .env.*
 !.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# Local SQLite database
+backend/data/*.db
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
