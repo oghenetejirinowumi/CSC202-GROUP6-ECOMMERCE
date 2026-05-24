@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { X, ChevronDown, Smartphone, Monitor, Tv, Home, Star } from "lucide-react";
 
 interface SubCategory {
@@ -145,9 +146,11 @@ const MenuDrawer = ({ isOpen, onClose }: MenuDrawerProps) => {
                                 <ul className="ml-4 mt-1 mb-1 border-l border-gray-200 pl-3 space-y-0.5">
                                     {category.subcategories.map((sub) => (
                                         <li key={sub.name}>
-                                            <button className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
-                                                {sub.name}
-                                            </button>
+                                            <Link href={`/${sub.name.toLowerCase()}`}>
+                                                <button className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+                                                    {sub.name}
+                                                </button>
+                                            </Link>
                                         </li>
                                     ))}
                                 </ul>
