@@ -1,23 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [staySignedIn, setStaySignedIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError(null);
 
-    if (!email || !password || !username) {
-      alert("Please fill in all fields");
-      return;
+    try {
+      await login(email, password);
+      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setSubmitting(false);
     }
-
-    alert("Signin successful (demo)");
   };
 
   const inputClass =
@@ -30,76 +38,54 @@ export default function LoginPage() {
       </h2>
 
       <div className="px-5 py-10 bg-[#f5f5f5] rounded-xl border border-[#cdcdcd99] max-w-[500px] mx-auto mt-20">
-        <form onSubmit={handleLogin}>
-
-          {/* Username or Email */}
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-1"> Username or Email </label>
+            <label className="block mb-1">Email</label>
             <input
+              id="email"
               type="email"
-              value={email || username}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value.includes("@")) {
-                  setEmail(value);
-                  setUsername("");
-                } else {
-                  setUsername(value);
-                  setEmail("");
-                }
-              }}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               className={inputClass}
             />
           </div>
 
-          {/* Password */}
           <div className="mb-4">
-            <div className="flex justify-between items-center mb-1">
-              <label> Password </label>
-              <Link
-                href="/forgot-password"
-                className="text-sm text-[#0F172A] underline hover:opacity-70 transition-opacity"
-              >
-                Forgot password?
-              </Link>
-            </div>
+            <label className="block mb-1">Password</label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
               className={inputClass}
             />
           </div>
 
-          {/* Stay Signed In */}
-          <div className="mb-4 flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={staySignedIn}
-              onChange={(e) => setStaySignedIn(e.target.checked)}
-            />
-            <span>Keep me Signed In</span>
-          </div>
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">
+              {error}
+            </p>
+          )}
 
-          {/* Submit Button */}
           <button
             type="submit"
-            className="block mx-auto px-12 py-3 bg-[#0F172A] text-white border-none rounded-full cursor-pointer hover:opacity-90 transition-opacity"
+            disabled={submitting}
+            className="block mx-auto px-12 py-3 bg-[#0F172A] text-white border-none rounded-full cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-60"
           >
-            Sign In
+            {submitting ? "Signing in..." : "Sign In"}
           </button>
 
-          {/* Create Account Link */}
           <p className="text-center mt-6 text-sm text-gray-600">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
-              href="/signup"
+              href="/register"
               className="text-[#0F172A] font-semibold underline hover:opacity-70 transition-opacity"
             >
               Create a new account
             </Link>
           </p>
-
         </form>
       </div>
     </div>
