@@ -68,6 +68,21 @@ db.serialize(() => {
     );
   `);
 
+  // CART ITEMS TABLE
+  // Persists each user's shopping cart before checkout.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cart_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      product_id INTEGER NOT NULL,
+      quantity INTEGER NOT NULL CHECK (quantity > 0),
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+      UNIQUE (user_id, product_id)
+    );
+  `);
+
   // Real gadget catalog for presentation/demo use.
   const realProducts = [
     // Laptops & Computers

@@ -13,7 +13,7 @@ const dbPath = path.join(__dirname, "data", "gadget-store.db");
 app.use(
   cors({
     origin: FRONTEND_ORIGIN,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: false,
   })
 );
@@ -32,6 +32,85 @@ const db = new sqlite3.Database(dbPath, (error) => {
   }
   console.log(`Connected to SQLite database at: ${dbPath}`);
 });
+
+const ensureCartSchema = () => {
+  db.run("PRAGMA foreign_keys = ON;");
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cart_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      product_id INTEGER NOT NULL,
+      quantity INTEGER NOT NULL CHECK (quantity > 0),
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+      UNIQUE (user_id, product_id)
+    );
+  `);
+};
+
+ensureCartSchema();
+
+const parsePositiveInt = (value, fieldName, res) => {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    res.status(400).json({ error: `${fieldName} must be a positive integer.` });
+    return null;
+  }
+  return parsed;
+};
+
+const fetchCartItems = (userId, callback) => {
+  db.all(
+    `
+      SELECT
+        ci.id,
+        ci.user_id,
+        ci.product_id,
+        ci.quantity,
+        ci.updated_at,
+        p.name AS product_name,
+        p.description,
+        p.price,
+        p.stock,
+        p.image_url
+      FROM cart_items ci
+      JOIN products p ON p.id = ci.product_id
+      WHERE ci.user_id = ?
+      ORDER BY ci.updated_at DESC
+    `,
+    [userId],
+    (error, rows) => {
+      if (error) {
+        callback(error);
+        return;
+      }
+
+      const items = rows.map((row) => ({
+        id: row.id,
+        user_id: row.user_id,
+        product_id: row.product_id,
+        quantity: row.quantity,
+        updated_at: row.updated_at,
+        product: {
+          name: row.product_name,
+          description: row.description,
+          price: row.price,
+          stock: row.stock,
+          image_url: row.image_url,
+        },
+        line_total: Number((row.price * row.quantity).toFixed(2)),
+      }));
+
+      const subtotal = Number(
+        items.reduce((sum, item) => sum + item.line_total, 0).toFixed(2)
+      );
+      const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+      callback(null, { user_id: userId, item_count: itemCount, subtotal, items });
+    }
+  );
+};
 
 app.get("/", (_req, res) => {
   res.json({ message: "Gadget Store API is running." });
@@ -122,6 +201,299 @@ app.post("/api/login", (req, res) => {
       }
     }
   );
+});
+
+// Returns the cart for a user, including product details and totals.
+app.get("/api/cart/:userId", (req, res) => {
+  const userId = parsePositiveInt(req.params.userId, "user id", res);
+  if (userId === null) {
+    return;
+  }
+
+  db.get("SELECT id FROM users WHERE id = ?", [userId], (userError, userRow) => {
+    if (userError) {
+      return res.status(500).json({ error: "Failed to validate user." });
+    }
+
+    if (!userRow) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    fetchCartItems(userId, (cartError, cart) => {
+      if (cartError) {
+        return res.status(500).json({ error: "Failed to fetch cart." });
+      }
+
+      return res.status(200).json(cart);
+    });
+  });
+});
+
+// Adds a product to the cart or increases quantity if it already exists.
+app.post("/api/cart", (req, res) => {
+  const { user_id, product_id, quantity } = req.body;
+  const userId = parsePositiveInt(user_id, "user_id", res);
+  if (userId === null) {
+    return;
+  }
+
+  const productId = parsePositiveInt(product_id, "product_id", res);
+  if (productId === null) {
+    return;
+  }
+
+  const addQuantity = Number(quantity);
+  if (!Number.isInteger(addQuantity) || addQuantity <= 0) {
+    return res.status(400).json({ error: "quantity must be a positive integer." });
+  }
+
+  db.get("SELECT id FROM users WHERE id = ?", [userId], (userError, userRow) => {
+    if (userError) {
+      return res.status(500).json({ error: "Failed to validate user." });
+    }
+
+    if (!userRow) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    db.get(
+      "SELECT id, stock FROM products WHERE id = ?",
+      [productId],
+      (productError, productRow) => {
+        if (productError) {
+          return res.status(500).json({ error: "Failed to validate product." });
+        }
+
+        if (!productRow) {
+          return res.status(404).json({ error: "Product not found." });
+        }
+
+        db.get(
+          "SELECT id, quantity FROM cart_items WHERE user_id = ? AND product_id = ?",
+          [userId, productId],
+          (cartError, cartRow) => {
+            if (cartError) {
+              return res.status(500).json({ error: "Failed to read cart item." });
+            }
+
+            const nextQuantity = cartRow ? cartRow.quantity + addQuantity : addQuantity;
+
+            if (nextQuantity > productRow.stock) {
+              return res.status(400).json({
+                error: `Not enough stock. Only ${productRow.stock} available.`,
+              });
+            }
+
+            const saveCartItem = () => {
+              fetchCartItems(userId, (fetchError, cart) => {
+                if (fetchError) {
+                  return res.status(500).json({ error: "Failed to fetch cart." });
+                }
+
+                return res.status(cartRow ? 200 : 201).json({
+                  message: cartRow
+                    ? "Cart item quantity updated."
+                    : "Product added to cart.",
+                  cart,
+                });
+              });
+            };
+
+            if (cartRow) {
+              db.run(
+                `
+                  UPDATE cart_items
+                  SET quantity = ?, updated_at = CURRENT_TIMESTAMP
+                  WHERE id = ?
+                `,
+                [nextQuantity, cartRow.id],
+                (updateError) => {
+                  if (updateError) {
+                    return res.status(500).json({ error: "Failed to update cart item." });
+                  }
+                  saveCartItem();
+                }
+              );
+              return;
+            }
+
+            db.run(
+              `
+                INSERT INTO cart_items (user_id, product_id, quantity)
+                VALUES (?, ?, ?)
+              `,
+              [userId, productId, addQuantity],
+              (insertError) => {
+                if (insertError) {
+                  return res.status(500).json({ error: "Failed to add item to cart." });
+                }
+                saveCartItem();
+              }
+            );
+          }
+        );
+      }
+    );
+  });
+});
+
+// Sets the quantity for a cart line. quantity 0 removes the item.
+app.put("/api/cart", (req, res) => {
+  const { user_id, product_id, quantity } = req.body;
+  const userId = parsePositiveInt(user_id, "user_id", res);
+  if (userId === null) {
+    return;
+  }
+
+  const productId = parsePositiveInt(product_id, "product_id", res);
+  if (productId === null) {
+    return;
+  }
+
+  const nextQuantity = Number(quantity);
+  if (!Number.isInteger(nextQuantity) || nextQuantity < 0) {
+    return res.status(400).json({ error: "quantity must be a non-negative integer." });
+  }
+
+  if (nextQuantity === 0) {
+    db.run(
+      "DELETE FROM cart_items WHERE user_id = ? AND product_id = ?",
+      [userId, productId],
+      function onDelete(deleteError) {
+        if (deleteError) {
+          return res.status(500).json({ error: "Failed to remove cart item." });
+        }
+
+        if (this.changes === 0) {
+          return res.status(404).json({ error: "Cart item not found." });
+        }
+
+        fetchCartItems(userId, (fetchError, cart) => {
+          if (fetchError) {
+            return res.status(500).json({ error: "Failed to fetch cart." });
+          }
+
+          return res.status(200).json({
+            message: "Cart item removed.",
+            cart,
+          });
+        });
+      }
+    );
+    return;
+  }
+
+  db.get(
+    "SELECT stock FROM products WHERE id = ?",
+    [productId],
+    (productError, productRow) => {
+      if (productError) {
+        return res.status(500).json({ error: "Failed to validate product." });
+      }
+
+      if (!productRow) {
+        return res.status(404).json({ error: "Product not found." });
+      }
+
+      if (nextQuantity > productRow.stock) {
+        return res.status(400).json({
+          error: `Not enough stock. Only ${productRow.stock} available.`,
+        });
+      }
+
+      db.run(
+        `
+          UPDATE cart_items
+          SET quantity = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ? AND product_id = ?
+        `,
+        [nextQuantity, userId, productId],
+        function onUpdate(updateError) {
+          if (updateError) {
+            return res.status(500).json({ error: "Failed to update cart item." });
+          }
+
+          if (this.changes === 0) {
+            return res.status(404).json({ error: "Cart item not found." });
+          }
+
+          fetchCartItems(userId, (fetchError, cart) => {
+            if (fetchError) {
+              return res.status(500).json({ error: "Failed to fetch cart." });
+            }
+
+            return res.status(200).json({
+              message: "Cart item quantity updated.",
+              cart,
+            });
+          });
+        }
+      );
+    }
+  );
+});
+
+// Removes one product from the user's cart.
+app.delete("/api/cart/:userId/:productId", (req, res) => {
+  const userId = parsePositiveInt(req.params.userId, "user id", res);
+  if (userId === null) {
+    return;
+  }
+
+  const productId = parsePositiveInt(req.params.productId, "product id", res);
+  if (productId === null) {
+    return;
+  }
+
+  db.run(
+    "DELETE FROM cart_items WHERE user_id = ? AND product_id = ?",
+    [userId, productId],
+    function onDelete(deleteError) {
+      if (deleteError) {
+        return res.status(500).json({ error: "Failed to remove cart item." });
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({ error: "Cart item not found." });
+      }
+
+      fetchCartItems(userId, (fetchError, cart) => {
+        if (fetchError) {
+          return res.status(500).json({ error: "Failed to fetch cart." });
+        }
+
+        return res.status(200).json({
+          message: "Cart item removed.",
+          cart,
+        });
+      });
+    }
+  );
+});
+
+// Clears every item from the user's cart.
+app.delete("/api/cart/:userId", (req, res) => {
+  const userId = parsePositiveInt(req.params.userId, "user id", res);
+  if (userId === null) {
+    return;
+  }
+
+  db.run("DELETE FROM cart_items WHERE user_id = ?", [userId], function onClear(clearError) {
+    if (clearError) {
+      return res.status(500).json({ error: "Failed to clear cart." });
+    }
+
+    return res.status(200).json({
+      message: "Cart cleared.",
+      cart: {
+        user_id: userId,
+        item_count: 0,
+        subtotal: 0,
+        items: [],
+      },
+      removed_items: this.changes,
+    });
+  });
 });
 
 // Returns a single order plus all of its line items.
