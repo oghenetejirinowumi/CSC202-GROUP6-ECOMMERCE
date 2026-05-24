@@ -81,6 +81,28 @@ const MenuDrawer = ({ isOpen, onClose }: MenuDrawerProps) => {
         setExpandedId(prev => (prev === id ? null : id));
     };
 
+    const getCategoryPath = (name: string): string => {
+        const pathMap: { [key: string]: string } = {
+            "Smartphones": "/smartphones",
+            "Tablets": "/tablets",
+            "Smartwatches": "/smartwatches",
+            "Audio": "/audio",
+            "Laptops": "/laptops",
+            "Desktop PCs": "/desktop-pcs",
+            "Gaming": "/gaming",
+            "Accessories": "/accessories",
+            "Televisions": "/televisions",
+            "Home Theater": "/home-theater",
+            "Streaming": "/streaming",
+            "Cameras": "/cameras",
+            "Smart Home": "/smart-home",
+            "Office": "/office",
+            "Wishlist Items": "/wishlist-items",
+            "Featured Deals": "/featured-deals",
+        };
+        return pathMap[name] || `/${name.toLowerCase().replace(/\s+/g, '-')}`;
+    };
+
     return (
         <>
             {/* BACKDROP */}
@@ -146,7 +168,7 @@ const MenuDrawer = ({ isOpen, onClose }: MenuDrawerProps) => {
                                 <ul className="ml-4 mt-1 mb-1 border-l border-gray-200 pl-3 space-y-0.5">
                                     {category.subcategories.map((sub) => (
                                         <li key={sub.name}>
-                                            <Link href={`/${sub.name.toLowerCase()}`}>
+                                            <Link href={getCategoryPath(sub.name)}>
                                                 <button className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
                                                     {sub.name}
                                                 </button>
