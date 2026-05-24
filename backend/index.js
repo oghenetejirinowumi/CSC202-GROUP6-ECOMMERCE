@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
@@ -8,6 +9,8 @@ const sqlite3 = require("sqlite3").verbose();
 const app = express();
 const PORT = Number(process.env.PORT) || 50000;
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "http://localhost:3000";
+const JWT_SECRET = process.env.JWT_SECRET || "teckvora-dev-secret";
+const JWT_EXPIRY_SECONDS = 60 * 60 * 24 * 7;
 const dbPath = path.join(__dirname, "data", "gadget-store.db");
 
 app.use(
@@ -58,6 +61,77 @@ const parsePositiveInt = (value, fieldName, res) => {
     return null;
   }
   return parsed;
+};
+
+const base64UrlEncode = (value) =>
+  Buffer.from(JSON.stringify(value)).toString("base64url");
+
+const base64UrlDecode = (value) =>
+  JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
+
+const signToken = (user) => {
+  const header = base64UrlEncode({ alg: "HS256", typ: "JWT" });
+  const payload = base64UrlEncode({
+    id: user.id,
+    email: user.email,
+    exp: Math.floor(Date.now() / 1000) + JWT_EXPIRY_SECONDS,
+  });
+  const signature = crypto
+    .createHmac("sha256", JWT_SECRET)
+    .update(`${header}.${payload}`)
+    .digest("base64url");
+  return `${header}.${payload}.${signature}`;
+};
+
+const verifyToken = (token) => {
+  const parts = token.split(".");
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  const [header, payload, signature] = parts;
+  const expected = crypto
+    .createHmac("sha256", JWT_SECRET)
+    .update(`${header}.${payload}`)
+    .digest("base64url");
+
+  if (signature !== expected) {
+    return null;
+  }
+
+  const decoded = base64UrlDecode(payload);
+  if (!decoded.exp || decoded.exp < Math.floor(Date.now() / 1000)) {
+    return null;
+  }
+
+  return decoded;
+};
+
+const authenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : null;
+
+  if (!token) {
+    return res.status(401).json({ error: "Authentication required." });
+  }
+
+  const decoded = verifyToken(token);
+  if (!decoded) {
+    return res.status(401).json({ error: "Invalid or expired token." });
+  }
+
+  req.user = { id: decoded.id, email: decoded.email };
+  return next();
+};
+
+const requireSelf = (req, res, userId) => {
+  if (req.user.id !== userId) {
+    res.status(403).json({ error: "You can only access your own data." });
+    return false;
+  }
+  return true;
 };
 
 const fetchCartItems = (userId, callback) => {
@@ -149,9 +223,17 @@ app.post("/api/register", async (req, res) => {
         return res.status(500).json({ error: "Failed to register user." });
       }
 
+      const user = {
+        id: this.lastID,
+        username,
+        email,
+      };
+
       return res.status(201).json({
         message: "User registered successfully.",
-        userId: this.lastID,
+        userId: user.id,
+        user,
+        token: signToken(user),
       });
     });
   } catch (_error) {
@@ -188,13 +270,16 @@ app.post("/api/login", (req, res) => {
           return res.status(401).json({ error: "Invalid email or password." });
         }
 
+        const user = {
+          id: userRow.id,
+          username: userRow.username,
+          email: userRow.email,
+        };
+
         return res.status(200).json({
           message: "Login successful.",
-          user: {
-            id: userRow.id,
-            username: userRow.username,
-            email: userRow.email,
-          },
+          user,
+          token: signToken(user),
         });
       } catch (_compareError) {
         return res.status(500).json({ error: "Failed to process login." });
@@ -204,9 +289,13 @@ app.post("/api/login", (req, res) => {
 });
 
 // Returns the cart for a user, including product details and totals.
-app.get("/api/cart/:userId", (req, res) => {
+app.get("/api/cart/:userId", authenticate, (req, res) => {
   const userId = parsePositiveInt(req.params.userId, "user id", res);
   if (userId === null) {
+    return;
+  }
+
+  if (!requireSelf(req, res, userId)) {
     return;
   }
 
@@ -230,10 +319,14 @@ app.get("/api/cart/:userId", (req, res) => {
 });
 
 // Adds a product to the cart or increases quantity if it already exists.
-app.post("/api/cart", (req, res) => {
+app.post("/api/cart", authenticate, (req, res) => {
   const { user_id, product_id, quantity } = req.body;
   const userId = parsePositiveInt(user_id, "user_id", res);
   if (userId === null) {
+    return;
+  }
+
+  if (!requireSelf(req, res, userId)) {
     return;
   }
 
@@ -338,10 +431,14 @@ app.post("/api/cart", (req, res) => {
 });
 
 // Sets the quantity for a cart line. quantity 0 removes the item.
-app.put("/api/cart", (req, res) => {
+app.put("/api/cart", authenticate, (req, res) => {
   const { user_id, product_id, quantity } = req.body;
   const userId = parsePositiveInt(user_id, "user_id", res);
   if (userId === null) {
+    return;
+  }
+
+  if (!requireSelf(req, res, userId)) {
     return;
   }
 
@@ -434,9 +531,13 @@ app.put("/api/cart", (req, res) => {
 });
 
 // Removes one product from the user's cart.
-app.delete("/api/cart/:userId/:productId", (req, res) => {
+app.delete("/api/cart/:userId/:productId", authenticate, (req, res) => {
   const userId = parsePositiveInt(req.params.userId, "user id", res);
   if (userId === null) {
+    return;
+  }
+
+  if (!requireSelf(req, res, userId)) {
     return;
   }
 
@@ -472,9 +573,13 @@ app.delete("/api/cart/:userId/:productId", (req, res) => {
 });
 
 // Clears every item from the user's cart.
-app.delete("/api/cart/:userId", (req, res) => {
+app.delete("/api/cart/:userId", authenticate, (req, res) => {
   const userId = parsePositiveInt(req.params.userId, "user id", res);
   if (userId === null) {
+    return;
+  }
+
+  if (!requireSelf(req, res, userId)) {
     return;
   }
 
@@ -496,8 +601,44 @@ app.delete("/api/cart/:userId", (req, res) => {
   });
 });
 
+// Returns all orders for a user.
+app.get("/api/users/:userId/orders", authenticate, (req, res) => {
+  const userId = parsePositiveInt(req.params.userId, "user id", res);
+  if (userId === null) {
+    return;
+  }
+
+  if (!requireSelf(req, res, userId)) {
+    return;
+  }
+
+  db.all(
+    `
+      SELECT
+        o.id,
+        o.user_id,
+        o.total,
+        o.date,
+        COUNT(oi.id) AS item_count
+      FROM orders o
+      LEFT JOIN order_items oi ON oi.order_id = o.id
+      WHERE o.user_id = ?
+      GROUP BY o.id
+      ORDER BY o.date DESC
+    `,
+    [userId],
+    (error, rows) => {
+      if (error) {
+        return res.status(500).json({ error: "Failed to fetch orders." });
+      }
+
+      return res.status(200).json({ orders: rows });
+    }
+  );
+});
+
 // Returns a single order plus all of its line items.
-app.get("/api/orders/:id", (req, res) => {
+app.get("/api/orders/:id", authenticate, (req, res) => {
   const orderId = Number(req.params.id);
 
   if (!Number.isInteger(orderId) || orderId <= 0) {
@@ -519,6 +660,10 @@ app.get("/api/orders/:id", (req, res) => {
 
       if (!orderRow) {
         return res.status(404).json({ error: "Order not found." });
+      }
+
+      if (!requireSelf(req, res, orderRow.user_id)) {
+        return;
       }
 
       db.all(
@@ -550,10 +695,18 @@ app.get("/api/orders/:id", (req, res) => {
   );
 });
 
-app.post("/api/orders", (req, res) => {
+app.post("/api/orders", authenticate, (req, res) => {
   const { user_id, items } = req.body;
+  const userId = parsePositiveInt(user_id, "user_id", res);
+  if (userId === null) {
+    return;
+  }
 
-  if (!user_id || !Array.isArray(items) || items.length === 0) {
+  if (!requireSelf(req, res, userId)) {
+    return;
+  }
+
+  if (!Array.isArray(items) || items.length === 0) {
     return res
       .status(400)
       .json({ error: "user_id and non-empty items array are required." });
@@ -624,7 +777,7 @@ app.post("/api/orders", (req, res) => {
 
         db.run(
           "INSERT INTO orders (user_id, total) VALUES (?, ?)",
-          [user_id, total],
+          [userId, total],
           function onOrderInsert(orderError) {
             if (orderError) {
               db.run("ROLLBACK");
@@ -666,12 +819,18 @@ app.post("/api/orders", (req, res) => {
                     .json({ error: "Failed to commit order transaction." });
                 }
 
-                return res.status(201).json({
-                  message: "Order created successfully.",
-                  orderId,
-                  total,
-                  items: orderLines,
-                });
+                db.run(
+                  "DELETE FROM cart_items WHERE user_id = ?",
+                  [userId],
+                  () => {
+                    return res.status(201).json({
+                      message: "Order created successfully.",
+                      orderId,
+                      total,
+                      items: orderLines,
+                    });
+                  }
+                );
               });
             };
 
