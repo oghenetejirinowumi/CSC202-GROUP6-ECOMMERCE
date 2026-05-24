@@ -97,7 +97,7 @@ const MenuDrawer = ({ isOpen, onClose }: MenuDrawerProps) => {
             "Cameras": "/cameras",
             "Smart Home": "/smart-home",
             "Office": "/office",
-            "Wishlist Items": "/wishlist-items",
+            "Wishlist Items": "/wishlist",
             "Featured Deals": "/featured-deals",
         };
         return pathMap[name] || `/${name.toLowerCase().replace(/\s+/g, '-')}`;
