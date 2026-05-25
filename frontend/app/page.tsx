@@ -7,4 +7,6 @@ export default function Home() {
       <ProductDisplay />
     </>
   );
+
+  
 }
