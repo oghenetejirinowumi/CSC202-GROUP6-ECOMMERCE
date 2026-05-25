@@ -1,5 +1,6 @@
 import "./globals.css";
 import Navbar from "../components/Navbar"; // Ensure this path is correct
+import {  CartProvider } from "../context/CartContext";
 
 export default function RootLayout({
   children,
@@ -9,9 +10,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-white antialiased">
-        <Navbar />
-        {/* Everything from page.tsx goes inside {children} */}
-        {children}
+        <CartProvider>
+          <Navbar />
+          {children}
+        </CartProvider>
       </body>
     </html>
   );
