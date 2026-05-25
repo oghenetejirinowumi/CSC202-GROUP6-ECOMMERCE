@@ -1,15 +1,11 @@
 import Hero from "../components/Hero";
-import LoginPage from "./login/page";
-import SignupPage from "./signup/page";
-// import FeaturedProducts from "../components/FeaturedProducts";
+import ProductDisplay from "../components/ProductDisplay";
 export default function Home() {
   return (
     <>
-    {/* <SignupPage/> */}
-    <LoginPage/>
-      {/* <Hero /> */}
-      {/* <FeaturedProducts/> */}
-      </>
+      <Hero />
+      <ProductDisplay />
+    </>
   );
 
   

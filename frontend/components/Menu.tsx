@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { X, ChevronDown, Smartphone, Monitor, Tv, Home, Star } from "lucide-react";
 
 interface SubCategory {
@@ -113,28 +114,38 @@ const MenuDrawer = ({ isOpen, onClose }: MenuDrawerProps) => {
                 <nav className="flex-1 overflow-y-auto py-3 px-3">
                     {categories.map((category) => (
                         <div key={category.id} className="mb-1">
-                            {/* CATEGORY BUTTON */}
-                            <button
-                                onClick={() => toggleCategory(category.id)}
-                                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors group"
-                            >
-                                <div className="flex items-center gap-3">
+                            {/* CATEGORY ROW — link on left, chevron toggle on right */}
+                            <div className="w-full flex items-center rounded-lg hover:bg-gray-100 transition-colors group">
+                                {/* Clicking the label/icon navigates to the category page */}
+                                <Link
+                                    href={`/categories/${encodeURIComponent(category.name)}`}
+                                    onClick={onClose}
+                                    className="flex-1 flex items-center gap-3 px-3 py-2.5"
+                                >
                                     <span className="text-gray-600 group-hover:text-gray-900 transition-colors">
                                         {category.icon}
                                     </span>
                                     <span className="text-sm font-semibold text-gray-800 group-hover:text-gray-900">
                                         {category.name}
                                     </span>
-                                </div>
-                                <ChevronDown
-                                    size={16}
-                                    className={`text-gray-400 transition-transform duration-200 ${
-                                        expandedId === category.id ? "rotate-180" : ""
-                                    }`}
-                                />
-                            </button>
+                                </Link>
 
-                            {/* SUBCATEGORIES */}
+                                {/* Clicking the chevron expands/collapses subcategories */}
+                                <button
+                                    onClick={() => toggleCategory(category.id)}
+                                    className="px-3 py-2.5 shrink-0"
+                                    aria-label={`Toggle ${category.name} subcategories`}
+                                >
+                                    <ChevronDown
+                                        size={16}
+                                        className={`text-gray-400 transition-transform duration-200 ${
+                                            expandedId === category.id ? "rotate-180" : ""
+                                        }`}
+                                    />
+                                </button>
+                            </div>
+
+                            {/* SUBCATEGORIES — each links to its own subcategory route */}
                             <div
                                 className={`overflow-hidden transition-all duration-300 ease-in-out ${
                                     expandedId === category.id
@@ -145,9 +156,13 @@ const MenuDrawer = ({ isOpen, onClose }: MenuDrawerProps) => {
                                 <ul className="ml-4 mt-1 mb-1 border-l border-gray-200 pl-3 space-y-0.5">
                                     {category.subcategories.map((sub) => (
                                         <li key={sub.name}>
-                                            <button className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+                                            <Link
+                                                href={`/categories/${encodeURIComponent(sub.name)}`}
+                                                onClick={onClose}
+                                                className="w-full block text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                                            >
                                                 {sub.name}
-                                            </button>
+                                            </Link>
                                         </li>
                                     ))}
                                 </ul>
