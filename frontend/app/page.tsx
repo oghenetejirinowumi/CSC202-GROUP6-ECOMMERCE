@@ -1,10 +1,10 @@
 import Hero from "../components/Hero";
-// import FeaturedProducts from "../components/FeaturedProducts";
+import ProductDisplay from "../components/ProductDisplay";
 export default function Home() {
   return (
     <>
       <Hero />
-      {/* <FeaturedProducts/> */}
-      </>
+      <ProductDisplay />
+    </>
   );
 }

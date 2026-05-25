@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link"; 
 import { Menu, Search, ShoppingCart, User } from "lucide-react";
 import MenuDrawer from "./Menu";
 
@@ -21,9 +22,11 @@ const Navbar = () => {
                     >
                         <Menu size={30} className="text-gray-800" />
                     </button>
-                    <span className="text-5xl font-bold tracking-tight text-black">
-                        Teckvora
-                    </span>
+                    <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+                        <span className="text-5xl font-bold tracking-tight text-black">
+                            Teckvora
+                        </span>
+                    </Link>
                 </div>
 
                 {/* CENTER: Search Bar */}
