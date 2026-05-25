@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { useMemo, useState } from "react";
+import Link from "next/link";
  
 type Product = {
   id: string;
@@ -29,56 +30,59 @@ function ProductCard({ product }: { product: Product }) {
     product.originalPrice > product.price;
  
   return (
-    <article className="group overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10">
-      <div className="relative aspect-4/3 overflow-hidden bg-black">
-        <Image
-          src={
-            product.image_url ||
-            "https://placehold.co/600x400/000000/FFFFFF?text=No+Image"
-          }
-          alt={product.name}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-80 transition-opacity group-hover:opacity-60" />
-        <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-gray-800 backdrop-blur">
-          {product.subCategory}
+    <Link href={`/products/${product.id}`} className="block h-full">
+      <article className="group overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10">
+        <div className="relative aspect-4/3 overflow-hidden bg-black">
+          <Image
+            src={
+              product.image_url ||
+              "https://placehold.co/600x400/000000/FFFFFF?text=No+Image"
+            }
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-80 transition-opacity group-hover:opacity-60" />
+          <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-gray-800 backdrop-blur">
+            {product.subCategory}
+          </div>
         </div>
-      </div>
- 
-      <div className="space-y-3 p-5">
-        <div className="space-y-1">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-gray-500">
-            {product.brand}
-          </p>
-          <h3 className="text-lg font-semibold leading-snug text-gray-900">
-            {product.name}
-          </h3>
-        </div>
- 
-        <div className="flex items-center gap-2 rounded-2xl bg-gray-50 px-3 py-2 transition-transform duration-500 group-hover:bg-gray-100 group-hover:scale-110">
-          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 transition-transform group-hover:scale-110" />
-          <span className="text-sm font-semibold text-gray-900">
-            {product.rating.toFixed(1)}
-          </span>
-          <span className="text-sm text-gray-500">
-            ({product.reviewCount} reviews)
-          </span>
-        </div>
- 
-        <div className="flex items-end gap-3">
-          <span className="text-2xl font-bold text-gray-900">
-            {currencyFormat.format(product.price)}
-          </span>
-          {hasOriginalPrice && (
-            <span className="pb-1 text-sm text-gray-400 line-through">
-              {currencyFormat.format(product.originalPrice ?? product.price)}
+  
+        <div className="space-y-3 p-5">
+          <div className="space-y-1">
+            <p className="text-sm font-medium uppercase tracking-[0.18em] text-gray-500">
+              {product.brand}
+            </p>
+            <h3 className="text-lg font-semibold leading-snug text-gray-900">
+              {product.name}
+            </h3>
+          </div>
+  
+          <div className="flex items-center gap-2 rounded-2xl bg-gray-50 px-3 py-2 transition-transform duration-500 group-hover:bg-gray-100 group-hover:scale-110">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 transition-transform group-hover:scale-110" />
+            <span className="text-sm font-semibold text-gray-900">
+              {product.rating.toFixed(1)}
             </span>
-          )}
+            <span className="text-sm text-gray-500">
+              ({product.reviewCount} reviews)
+            </span>
+          </div>
+  
+          <div className="flex items-end gap-3">
+            <span className="text-2xl font-bold text-gray-900">
+              {currencyFormat.format(product.price)}
+            </span>
+            {hasOriginalPrice && (
+              <span className="pb-1 text-sm text-gray-400 line-through">
+                {currencyFormat.format(product.originalPrice ?? product.price)}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
+    </Link>
   );
 }
  
@@ -147,7 +151,7 @@ export default function ProductsClient({
   }, [initialProducts, brandFilter, subCatFilter, query, sortAsc]);
  
   return (
-    <section className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-white py-16 sm:py-24">
+    <section className="min-h-screen bg-linear-to-b from-white via-gray-50 to-white py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
  
         {/* PAGE HEADER */}
