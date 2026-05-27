@@ -1,0 +1,52 @@
+# System Architecture
+
+The system follows a client-server architecture.
+- Frontend handles user interaction
+- Backend processes requests
+- Database stores application data
+
+# Frontend Implementation
+
+The frontend was developed using:
+- HTML
+- CSS
+- JavaScript
+- React.js
+
+Responsibilities include:
+- Rendering products
+- Handling user interactions
+- Managing application state
+- Sending API requests
+
+# Backend Implementation
+
+The backend was developed using:
+- Node.js
+- Express.js
+
+Responsibilities include:
+- API creation
+- Authentication handling
+- Database communication
+- Request validation
+
+# Database Design
+
+The database stores:
+- User information
+- Product details
+- Orders
+- Cart data
+
+
+# Authentication System
+
+The authentication system allows:
+- User registration
+- User login
+- Session/token handling
+- Access restriction
+
+
+
