@@ -1,12 +1,21 @@
 # System Architecture
+The system follows a client-server architecture:
 
-The system follows a client-server architecture.
-- Frontend handles user interaction
-- Backend processes requests
-- Database stores application data
+#Frontend
+- Handles UI rendering.
+- Sends requests to backend APIs.
+- Displays products, carts and user actions.
 
-# Frontend Implementation
+#Backend
+- Processes the requests from frontend.
+- Handles cart operations and authentication.
+- Communicates with the database.
 
+# Database
+-Stores the users, products, carts and orders.
+- Ensures persistent data storage.
+
+#Frontend Implementation
 The frontend was developed using:
 - HTML
 - CSS
@@ -14,22 +23,123 @@ The frontend was developed using:
 - React.js
 
 Responsibilities include:
-- Rendering products
-- Handling user interactions
-- Managing application state
-- Sending API requests
+- Rendering homepage and product page.
+- Handling user interactions like login, register, cart actions, etc.
+- Managing navigation between pages and components.
+- Communicating with backend using API requests.
+
+ Key Frontend Features
+   Landing Page/Homepage:
+  - Displays featured or all available products
+  - Provides navigation to login, register, and cart
+  - Acts as the entry point of the application
+
+    Product Listing Page:
+   - Dynamically displays products fetched from backend.
+   - Each product includes the name, price, image and "add to cart button"
+   - Supports user interaction for selecting items
+
+     Authentication Page:
+   Login Page
+    - Accepts user credentials (email/password)
+    - Sends login request to backend
+    - Stores authentication session on success
+   Registration Page
+    - Collects user details
+    - Sends registration request to backend
+    - Redirects user after successful account creation
+
+     Shopping Cart Page:
+    - Displays all selected products
+    - Shows quantity and total price calculation
+    - Allows to:
+      Increase/decrease quantity
+      Remove items
+      Update dynamically when cart changes
+
+     Checkout Page:
+     - Displays final order summary
+    - Confirms purchase action
+    - Sends order data to backend
+    - Clears cart after successful order
+
+     Navigation System
+     - Allows movement between pages without breaking application flow
+     - Maintains user session across pages
+ 
+    Frontend Logic Flow
+ Application Load Flow:
+ - User opens the application
+ - Frontend initializes application state
+ - API request is sent to backend to fetch products
+ - Backend returns product data
+ - Frontend renders products dynamically on homepage
+ Product Interaction Flow:
+ - User views product list
+ - User clicks “Add to Cart”
+ - Frontend sends product ID to backend via API
+ - Backend updates cart in database
+ - Backend sends success response
+ - Frontend updates cart UI immediately
+ Authentication Flow:
+ - User enters login credentials
+ - Frontend validates input format (basic validation)
+ - Credentials sent to backend API
+ - Backend checks user database
+  If valid:
+  - authentication token/session is generated
+  - user is redirected to homepage/dashboard
+   If invalid:
+  - error message displayed on UI
+ Cart Management Flow:
+ - User adds product to cart
+ - Frontend updates cart state temporarily
+ - Backend stores cart update permanently
+ - Frontend syncs with backend response
+ - Cart page reflects updated items and total price
+ Checkout Flow:
+ - User navigates to checkout page
+ - Frontend retrieves cart data
+ - Total price is calculated
+ - User confirms order
+ - Frontend sends order request to backend
+ - Backend creates order record
+ - Cart is cleared after successful transaction
+ - Confirmation message is displayed
+ State Mangement Flow:
+The frontend maintains application state such as:
+ - Logged-in user state
+ - Cart contents
+ - Product list
+ - Loading states
+State updates occur when:
+ - API responses are received
+ - User performs actions (add/remove cart items)
+ - Authentication status changes
+
+Frontend-Backend Communication Model
+The frontend communicates with the backend using REST API calls.
+Process:
+ - Frontend sends HTTP request (GET/POST/DELETE)
+ - Backend processes request
+ - Backend sends JSON response
+ - Frontend updates UI based on response
 
 # Backend Implementation
-
 The backend was developed using:
 - Node.js
 - Express.js
-
+- REST API Architecture
 Responsibilities include:
-- API creation
-- Authentication handling
-- Database communication
-- Request validation
+ - Processing frontend requests
+ - Managing authentication and authorization
+ - Handling product-related operations
+ - Managing cart functionality
+ - Performing database communication
+ - Processing orders and transactions
+ - Returning API responses
+ - Handling validation and error management
+ Backend Modules
 
 # Database Design
 
