@@ -1,17 +1,25 @@
-import "./globals.css";
-import Navbar from "../components/Navbar"; // Ensure this path is correct
-import { CartProvider } from "../context/CartContext";
+'use client';
+
+import { usePathname } from 'next/navigation';
+import Navbar from '@/components/Navbar';
+import { CartProvider } from '@/context/CartContext';
+import './globals.css';
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  
+  // Hide navbar on login and signup pages
+  const hideNavbar = pathname === '/login' || pathname === '/signup';
+
   return (
     <html lang="en">
-      <body className="bg-white antialiased" suppressHydrationWarning={true}>
+      <body>
         <CartProvider>
-          <Navbar />
+          {!hideNavbar && <Navbar />}
           {children}
         </CartProvider>
       </body>
