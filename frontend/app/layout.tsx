@@ -1,6 +1,6 @@
 import "./globals.css";
 import Navbar from "../components/Navbar"; // Ensure this path is correct
-import {  CartProvider } from "../context/CartContext";
+import { CartProvider } from "../context/CartContext";
 
 export default function RootLayout({
   children,
@@ -9,7 +9,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-white antialiased">
+      <body className="bg-white antialiased" suppressHydrationWarning={true}>
         <CartProvider>
           <Navbar />
           {children}

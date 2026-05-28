@@ -22,13 +22,14 @@ db.exec("PRAGMA foreign_keys = ON;");
 
 const ensureSchema = () => {
   db.exec(`
-    CREATE TABLE IF NOT EXISTS User (
+    CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE
     );
-    CREATE TABLE IF NOT EXISTS Product (
+
+    CREATE TABLE IF NOT EXISTS products (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       brand TEXT NOT NULL,
@@ -46,24 +47,39 @@ const ensureSchema = () => {
       stock INTEGER NOT NULL,
       image_url TEXT
     );
-    CREATE TABLE IF NOT EXISTS "Order" (
+
+    CREATE TABLE IF NOT EXISTS orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      userId INTEGER,
+      user_id INTEGER,
       total REAL NOT NULL,
       date TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (userId) REFERENCES User(id) ON DELETE SET NULL
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
     );
-    CREATE TABLE IF NOT EXISTS OrderItem (
+
+    CREATE TABLE IF NOT EXISTS order_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      orderId INTEGER NOT NULL,
-      productId TEXT NOT NULL,
+      order_id INTEGER NOT NULL,
+      product_id TEXT NOT NULL,
       quantity INTEGER NOT NULL,
       price_at_purchase REAL NOT NULL,
-      FOREIGN KEY (orderId) REFERENCES "Order"(id) ON DELETE CASCADE,
-      FOREIGN KEY (productId) REFERENCES Product(id)
+      FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+      FOREIGN KEY (product_id) REFERENCES products(id)
     );
-    CREATE INDEX IF NOT EXISTS idx_orderitem_orderId ON OrderItem(orderId);
-    CREATE INDEX IF NOT EXISTS idx_order_userId ON "Order"(userId);
+
+    CREATE TABLE IF NOT EXISTS cart_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      product_id TEXT NOT NULL,
+      quantity INTEGER NOT NULL CHECK (quantity > 0),
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+      UNIQUE (user_id, product_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+    CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+    CREATE INDEX IF NOT EXISTS idx_cart_items_user_id ON cart_items(user_id);
   `);
 };
 
@@ -231,7 +247,7 @@ const realProducts = [
 // ─── SEED ──────────────────────────────────────────────────────────────────────
 
 const insertProduct = db.prepare(
-  `INSERT INTO Product (
+  `INSERT INTO products (
     id, name, brand, category, subCategory,
     price, originalPrice, rating, reviewCount, description,
     isFeatured, isNewArrival, tags, specs, stock, image_url
@@ -239,10 +255,11 @@ const insertProduct = db.prepare(
 );
 
 db.exec(`
-  DELETE FROM OrderItem;
-  DELETE FROM "Order";
-  DELETE FROM Product;
-  DELETE FROM User;
+  DELETE FROM cart_items;
+  DELETE FROM order_items;
+  DELETE FROM orders;
+  DELETE FROM products;
+  DELETE FROM users;
 `);
 
 for (const product of realProducts) {

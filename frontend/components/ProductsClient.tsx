@@ -60,13 +60,15 @@ function ProductCard({ product }: { product: Product }) {
             </h3>
           </div>
   
+          {/* ProductCard Component */}
           <div className="flex items-center gap-2 rounded-2xl bg-gray-50 px-3 py-2 transition-transform duration-500 group-hover:bg-gray-100 group-hover:scale-110">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 transition-transform group-hover:scale-110" />
             <span className="text-sm font-semibold text-gray-900">
-              {product.rating.toFixed(1)}
+              {/* Use a fallback check to prevent undefined runtime execution crashes */}
+              {typeof product.rating === "number" ? product.rating.toFixed(1) : "0.0"}
             </span>
             <span className="text-sm text-gray-500">
-              ({product.reviewCount} reviews)
+              ({product.reviewCount || 0} reviews)
             </span>
           </div>
   
