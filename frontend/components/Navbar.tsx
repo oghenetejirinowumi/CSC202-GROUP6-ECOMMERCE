@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { LogOut, Menu, Search, ShoppingCart, User } from "lucide-react";
+import { ClipboardList, LogOut, Menu, Search, ShoppingCart, User } from "lucide-react";
 import MenuDrawer from "./Menu";
 import CartDrawer from "./CartDrawer";
 import { useAuth } from "../context/AuthContext";
@@ -72,15 +72,18 @@ const Navbar = () => {
             <span className="text-lg tracking-tight text-black">Cart</span>
           </button>
 
-          {user ? (
-            <div className="flex items-center gap-4">
-              <Link
-                href="/orders"
-                className="text-sm text-gray-700 hover:text-black"
-              >
-                Orders
-              </Link>
+          <Link
+            href={user ? "/orders" : "/login"}
+            className="flex flex-col items-center gap-0"
+          >
+            <div className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <ClipboardList size={30} className="text-gray-800" />
+            </div>
+            <span className="text-lg tracking-tight text-black">Orders</span>
+          </Link>
 
+          {user ? (
+            <div className="flex items-center gap-6">
               <div className="flex flex-col items-center gap-0">
                 <div className="p-2 rounded-full">
                   <User size={30} className="text-gray-800" />
