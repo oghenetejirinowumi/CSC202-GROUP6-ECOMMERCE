@@ -52,12 +52,15 @@ const Navbar = () => {
           </div>
 
 
-          <div className="flex flex-col items-center gap-0 cursor-pointer">
+          <Link 
+            href="/profile" 
+            className="flex flex-col items-center gap-0 cursor-pointer text-black hover:text-gray-600 transition-colors group"
+          >
             <div className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
               <User size={30} className="text-gray-800" />
             </div>
             <span className="text-lg tracking-tight text-black">User</span>
-          </div>
+          </Link>
         </div>
       </nav>
     </>
