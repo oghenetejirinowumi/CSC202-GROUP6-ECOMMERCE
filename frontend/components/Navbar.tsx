@@ -1,18 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, Search, ShoppingCart, User } from "lucide-react";
+import { LogOut, Menu, Search, ShoppingCart, User } from "lucide-react";
 import MenuDrawer from "./Menu";
 import CartDrawer from "./CartDrawer";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
 const Navbar = () => {
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const { user, logout } = useAuth();
   const { cart, setDrawerOpen: setCartOpen } = useCart();
   const cartCount = cart?.item_count ?? 0;
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+      router.push("/login");
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   return (
     <>
@@ -67,15 +80,27 @@ const Navbar = () => {
               >
                 Orders
               </Link>
-              <button
-                onClick={logout}
-                className="flex flex-col items-center gap-0"
-              >
-                <div className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+
+              <div className="flex flex-col items-center gap-0">
+                <div className="p-2 rounded-full">
                   <User size={30} className="text-gray-800" />
                 </div>
                 <span className="text-lg tracking-tight text-black max-w-24 truncate">
                   {user.username}
+                </span>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="flex flex-col items-center gap-0 disabled:opacity-60"
+                aria-label="Log out"
+              >
+                <div className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                  <LogOut size={26} className="text-gray-800" />
+                </div>
+                <span className="text-lg tracking-tight text-black">
+                  {loggingOut ? "..." : "Log out"}
                 </span>
               </button>
             </div>

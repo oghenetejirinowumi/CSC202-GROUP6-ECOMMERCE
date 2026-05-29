@@ -21,7 +21,7 @@ type AuthContextValue = {
     email: string,
     password: string
   ) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -87,11 +87,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [persistAuth]
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const currentToken = token;
+
+    if (currentToken) {
+      try {
+        await apiFetch<{ message: string }>("/api/logout", {
+          method: "POST",
+          token: currentToken,
+        });
+      } catch {
+        // Clear local session even if the server request fails.
+      }
+    }
+
     setUser(null);
     setToken(null);
     localStorage.removeItem(STORAGE_KEY);
-  }, []);
+  }, [token]);
 
   const value = useMemo(
     () => ({ user, token, loading, login, register, logout }),

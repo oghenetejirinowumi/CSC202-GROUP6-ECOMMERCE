@@ -62,8 +62,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [user, token]);
 
   useEffect(() => {
+    if (!user || !token) {
+      setCart(null);
+      setDrawerOpen(false);
+      setError(null);
+      return;
+    }
+
     refreshCart();
-  }, [refreshCart]);
+  }, [user, token, refreshCart]);
 
   const addToCart = useCallback(
     async (productId: number, quantity = 1) => {

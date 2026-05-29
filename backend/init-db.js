@@ -83,6 +83,15 @@ db.serialize(() => {
     );
   `);
 
+  // REVOKED TOKENS TABLE
+  // Stores JWT ids invalidated by logout so old tokens cannot be reused.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS revoked_tokens (
+      token_id TEXT PRIMARY KEY,
+      revoked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
   // Real gadget catalog for presentation/demo use.
   const realProducts = [
     // Laptops & Computers

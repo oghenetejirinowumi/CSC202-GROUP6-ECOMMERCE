@@ -50,6 +50,12 @@ const ensureCartSchema = () => {
       UNIQUE (user_id, product_id)
     );
   `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS revoked_tokens (
+      token_id TEXT PRIMARY KEY,
+      revoked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
 };
 
 ensureCartSchema();
@@ -74,6 +80,7 @@ const signToken = (user) => {
   const payload = base64UrlEncode({
     id: user.id,
     email: user.email,
+    jti: crypto.randomUUID(),
     exp: Math.floor(Date.now() / 1000) + JWT_EXPIRY_SECONDS,
   });
   const signature = crypto
@@ -122,8 +129,37 @@ const authenticate = (req, res, next) => {
     return res.status(401).json({ error: "Invalid or expired token." });
   }
 
-  req.user = { id: decoded.id, email: decoded.email };
-  return next();
+  const attachUser = () => {
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      jti: decoded.jti || null,
+    };
+    req.token = token;
+    return next();
+  };
+
+  if (!decoded.jti) {
+    return attachUser();
+  }
+
+  db.get(
+    "SELECT token_id FROM revoked_tokens WHERE token_id = ?",
+    [decoded.jti],
+    (error, row) => {
+      if (error) {
+        return res.status(500).json({ error: "Failed to verify session." });
+      }
+
+      if (row) {
+        return res
+          .status(401)
+          .json({ error: "Session has ended. Please sign in again." });
+      }
+
+      return attachUser();
+    }
+  );
 };
 
 const requireSelf = (req, res, userId) => {
@@ -284,6 +320,24 @@ app.post("/api/login", (req, res) => {
       } catch (_compareError) {
         return res.status(500).json({ error: "Failed to process login." });
       }
+    }
+  );
+});
+
+app.post("/api/logout", authenticate, (req, res) => {
+  if (!req.user.jti) {
+    return res.status(200).json({ message: "Logged out successfully." });
+  }
+
+  db.run(
+    "INSERT OR IGNORE INTO revoked_tokens (token_id) VALUES (?)",
+    [req.user.jti],
+    (error) => {
+      if (error) {
+        return res.status(500).json({ error: "Failed to log out." });
+      }
+
+      return res.status(200).json({ message: "Logged out successfully." });
     }
   );
 });
