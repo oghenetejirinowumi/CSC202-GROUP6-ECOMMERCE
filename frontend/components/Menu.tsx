@@ -92,20 +92,20 @@ const MenuDrawer = ({ isOpen, onClose }: MenuDrawerProps) => {
 
             {/* DRAWER */}
             <aside
-                className={`fixed top-0 left-0 h-full w-72 bg-white z-50 shadow-2xl flex flex-col
+                className={`fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-950 z-50 shadow-2xl flex flex-col
                     transform transition-transform duration-300 ease-in-out
                     ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
             >
                 {/* DRAWER HEADER */}
-                <div className="h-16 flex items-center justify-between px-5 border-b border-gray-200">
-                    <span className="text-lg font-extrabold tracking-tight text-gray-900">
+                <div className="h-16 flex items-center justify-between px-5 border-b border-gray-200 dark:border-gray-800">
+                    <span className="text-lg font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
                         Categories
                     </span>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     >
-                        <X size={20} className="text-gray-700" />
+                        <X size={20} className="text-gray-700 dark:text-gray-300" />
                     </button>
                 </div>
 
@@ -116,19 +116,19 @@ const MenuDrawer = ({ isOpen, onClose }: MenuDrawerProps) => {
                             {/* CATEGORY BUTTON */}
                             <button
                                 onClick={() => toggleCategory(category.id)}
-                                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors group"
+                                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
                             >
                                 <div className="flex items-center gap-3">
-                                    <span className="text-gray-600 group-hover:text-gray-900 transition-colors">
+                                    <span className="text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
                                         {category.icon}
                                     </span>
-                                    <span className="text-sm font-semibold text-gray-800 group-hover:text-gray-900">
+                                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white">
                                         {category.name}
                                     </span>
                                 </div>
                                 <ChevronDown
                                     size={16}
-                                    className={`text-gray-400 transition-transform duration-200 ${
+                                    className={`text-gray-400 dark:text-gray-500 transition-transform duration-200 ${
                                         expandedId === category.id ? "rotate-180" : ""
                                     }`}
                                 />
@@ -142,10 +142,10 @@ const MenuDrawer = ({ isOpen, onClose }: MenuDrawerProps) => {
                                         : "max-h-0 opacity-0"
                                 }`}
                             >
-                                <ul className="ml-4 mt-1 mb-1 border-l border-gray-200 pl-3 space-y-0.5">
+                                <ul className="ml-4 mt-1 mb-1 border-l border-gray-200 dark:border-gray-700 pl-3 space-y-0.5">
                                     {category.subcategories.map((sub) => (
                                         <li key={sub.name}>
-                                            <button className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+                                            <button className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
                                                 {sub.name}
                                             </button>
                                         </li>
@@ -157,8 +157,8 @@ const MenuDrawer = ({ isOpen, onClose }: MenuDrawerProps) => {
                 </nav>
 
                 {/* DRAWER FOOTER */}
-                <div className="border-t border-gray-200 px-4 py-4">
-                    <p className="text-xs text-gray-400 text-center">TechMart © 2025</p>
+                <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-4">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 text-center">TechMart © 2025</p>
                 </div>
             </aside>
         </>

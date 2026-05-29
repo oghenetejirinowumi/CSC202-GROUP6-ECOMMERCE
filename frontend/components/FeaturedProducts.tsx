@@ -41,16 +41,16 @@ export default function FeaturedProducts() {
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h2 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-12">
+      <h2 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 dark:text-gray-100 mb-12">
         Featured Products
       </h2>
 
       {loading && (
-        <p className="text-center text-gray-600">Loading products...</p>
+        <p className="text-center text-gray-600 dark:text-gray-400">Loading products...</p>
       )}
 
       {error && (
-        <p className="text-center text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 max-w-lg mx-auto">
+        <p className="text-center text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg px-4 py-3 max-w-lg mx-auto">
           {error}
         </p>
       )}

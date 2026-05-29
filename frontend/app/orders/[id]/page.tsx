@@ -46,7 +46,11 @@ export default function OrderDetailPage() {
   }, [user, token, params.id]);
 
   if (authLoading || loading) {
-    return <main className="max-w-3xl mx-auto px-4 py-16">Loading order...</main>;
+    return (
+      <main className="max-w-3xl mx-auto px-4 py-16 text-gray-600 dark:text-gray-400">
+        Loading order...
+      </main>
+    );
   }
 
   if (!user) {
@@ -56,8 +60,11 @@ export default function OrderDetailPage() {
   if (error || !orderDetail) {
     return (
       <main className="max-w-3xl mx-auto px-4 py-16">
-        <p className="text-red-600">{error || "Order not found"}</p>
-        <Link href="/orders" className="text-blue-600 hover:underline mt-4 inline-block">
+        <p className="text-red-600 dark:text-red-400">{error || "Order not found"}</p>
+        <Link
+          href="/orders"
+          className="text-blue-600 dark:text-blue-400 hover:underline mt-4 inline-block"
+        >
           Back to orders
         </Link>
       </main>
@@ -69,28 +76,39 @@ export default function OrderDetailPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-16 space-y-6">
       <div>
-        <Link href="/orders" className="text-blue-600 hover:underline text-sm">
+        <Link
+          href="/orders"
+          className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+        >
           Back to orders
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900 mt-2">Order #{order.id}</h1>
-        <p className="text-gray-600">{new Date(order.date).toLocaleString()}</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-2">
+          Order #{order.id}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          {new Date(order.date).toLocaleString()}
+        </p>
       </div>
 
-      <section className="border border-gray-200 rounded-xl divide-y divide-gray-200">
+      <section className="border border-gray-200 dark:border-gray-700 rounded-xl divide-y divide-gray-200 dark:divide-gray-700">
         {items.map((item) => (
           <div key={item.id} className="flex justify-between gap-4 p-4">
             <div>
-              <p className="font-medium text-gray-900">{item.product_name}</p>
-              <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">
+                {item.product_name}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Qty: {item.quantity}
+              </p>
             </div>
-            <p className="font-semibold text-gray-900">
+            <p className="font-semibold text-gray-900 dark:text-gray-100">
               ${(item.price_at_purchase * item.quantity).toFixed(2)}
             </p>
           </div>
         ))}
       </section>
 
-      <div className="flex justify-between text-xl font-bold">
+      <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-gray-100">
         <span>Total</span>
         <span>${order.total.toFixed(2)}</span>
       </div>
