@@ -85,7 +85,7 @@ const Navbar = () => {
           {user ? (
             <div className="flex items-center gap-6">
               <div className="flex flex-col items-center gap-0">
-                <div className="p-2 rounded-full">
+                <div className="p-2 rounded-full hover:bg-gray-100 transition-colors">
                   <User size={30} className="text-gray-800" />
                 </div>
                 <span className="text-lg tracking-tight text-black max-w-24 truncate">
