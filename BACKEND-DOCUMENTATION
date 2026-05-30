@@ -1,0 +1,360 @@
+
+# Backend Documentation
+
+The backend is a Node.js and Express REST API. It reads and writes to a SQLite database file stored on disk. All responses are JSON.
+
+**Server file:** `backend/index.js`
+**Database seeder:** `backend/init-db.js`
+**Database file:** `backend/data/gadget-store.db`
+**Runs on:** `http://localhost:5000`
+
+ Starting Up
+
+When you run `pnpm start`, the server does this before taking any requests:
+
+1. Checks if `data/gadget-store.db` exists. If it does not, it prints an error and stops. You need to run `pnpm run init-db` first.
+2. Connects to the database and turns on foreign key enforcement.
+3. Makes sure the `cart_items` table exists (other tables are created by `init-db.js`).
+4. Starts listening on port 5000.
+
+Database Tables
+users
+Stores registered accounts.
+
+| Column | Type | Notes |
+|--------|--------|--------|
+| `id` | INTEGER | Primary key, auto-increments |
+| `username` | TEXT | Must be unique |
+| `password_hash` | TEXT | bcrypt hash — raw password is never saved |
+| `email` | TEXT | Must be unique |
+
+products
+Stores the product catalogue. Seeded with 87 products by `init-db.js`.
+
+| Column | Type | Notes |
+|--------|--------|--------|
+| `id` | TEXT | Primary key, e.g. `PRD-001` |
+| `name` | TEXT | Product name |
+| `brand` | TEXT | Brand name |
+| `category` | TEXT | One of the 5 top-level categories |
+| `subCategory` | TEXT | One of the 14 subcategories |
+| `price` | REAL | Stored in kobo — e.g. `1199990` means ₦11,999.90 |
+| `originalPrice` | REAL | Optional. Used to show a strikethrough "was" price |
+| `rating` | REAL | Out of 5 |
+| `reviewCount` | INTEGER | Number of reviews |
+| `description` | TEXT | Full description |
+| `isFeatured` | INTEGER | 1 = featured, 0 = not |
+| `isNewArrival` | INTEGER | 1 = new arrival, 0 = not |
+| `tags` | TEXT | Comma-separated keywords |
+| `specs` | TEXT | JSON string of key/value spec pairs |
+| `stock` | INTEGER | Available units — reduced when an order is placed |
+| `image_url` | TEXT | Product image URL |
+
+**Categories and subcategories:**
+
+| Category | Subcategories |
+|--------|--------|
+| Mobile & Wearables | Smartphones, Tablets, Smartwatches, Audio |
+| Computing & Gaming | Laptops, Desktop PCs, Gaming, Accessories |
+| Home Entertainment | Televisions, Home Theater, Streaming |
+| Smart Home & Photography | Cameras, Smart Home, Office |
+| Miscellaneous | Wishlist Items, Featured Deals |
+
+ `orders`
+
+One row per completed order.
+
+| Column | Type | Notes |
+|--------|--------|--------|
+| `id` | INTEGER | Primary key, auto-increments |
+| `user_id` | INTEGER | Links to `users.id`. Set to NULL if user is deleted |
+| `total` | REAL | Total price in kobo |
+| `date` | TEXT | Set automatically to current date and time |
+
+ `order_items`
+
+One row per product in an order. The price is saved at the time of purchase so it never changes.
+
+| Column | Type | Notes |
+|--------|--------|--------|
+| `id` | INTEGER | Primary key, auto-increments |
+| `order_id` | INTEGER | Links to `orders.id`. Deleted when order is deleted |
+| `product_id` | TEXT | Links to `products.id` |
+| `quantity` | INTEGER | Units purchased |
+| `price_at_purchase` | REAL | Price per unit at time of order |
+
+cart_items
+
+Stores each user's active cart. Only one row is allowed per product per user — adding the same product again increases the quantity instead.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | INTEGER | Primary key, auto-increments |
+| `user_id` | INTEGER | Links to `users.id`. Deleted when user is deleted |
+| `product_id` | TEXT | Links to `products.id`. Deleted when product is deleted |
+| `quantity` | INTEGER | Must be greater than 0 |
+| `updated_at` | TEXT | Updated automatically on every change |
+
+
+API Endpoints
+
+All error responses return `{ "error": "description of what went wrong" }`.
+
+
+GET /
+Health check to confirm the server is running.
+Response:
+{ "message": "Gadget Store API is running." }
+
+GET /api/products
+Returns all 87 products ordered by ID.
+
+**Response `200`:**
+[
+  {
+    "id": "PRD-001",
+    "name": "Apple iPhone 15 Pro",
+    "brand": "Apple",
+    "category": "Mobile & Wearables",
+    "subCategory": "Smartphones",
+    "price": 1199990,
+    "originalPrice": 1319988,
+    "rating": 4.9,
+    "reviewCount": 128,
+    "description": "Titanium design with A17 Pro chip...",
+    "isFeatured": 1,
+    "isNewArrival": 1,
+    "tags": "iphone,smartphone,apple,ios,5g",
+    "specs": "{\"Display\":\"6.1-inch OLED\",\"Chip\":\"A17 Pro\"}",
+    "stock": 45,
+    "image_url": "https://..."
+  }
+]
+
+ POST /api/register
+
+Creates a new user account. The password is hashed with bcrypt before being saved — the plain password is never stored.
+
+**Request body:**
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "mysecretpassword"
+}
+
+**Response `201`:**
+{
+  "message": "User registered successfully.",
+  "userId": 1
+}
+
+| Status | When it happens |
+|--------|--------|
+| `400` | A required field is missing |
+| `409` | Username or email is already taken |
+| `500` | Password hashing or database error |
+
+ POST /api/login
+
+Checks a user's email and password and returns their account info on success.
+
+**Request body:**
+
+{
+  "email": "john@example.com",
+  "password": "mysecretpassword"
+}
+
+
+**Response `200`:**
+
+{
+  "message": "Login successful.",
+  "user": {
+    "id": 1,
+    "username": "john_doe",
+    "email": "john@example.com"
+  }
+}
+
+
+| Status | When it happens |
+|--------|--------|
+| `400` | Email or password missing |
+| `401` | Email not found or password is wrong |
+| `500` | Database error |
+
+ GET /api/cart/:userId
+
+Returns a user's full cart with product details and a subtotal.
+
+**Example:** `GET /api/cart/1`
+
+**Response `200`:**
+{
+  "user_id": 1,
+  "item_count": 2,
+  "subtotal": 2399980,
+  "items": [
+    {
+      "id": 12,
+      "user_id": 1,
+      "product_id": "PRD-001",
+      "quantity": 2,
+      "updated_at": "2025-01-01 10:00:00",
+      "product": {
+        "name": "Apple iPhone 15 Pro",
+        "price": 1199990,
+        "stock": 45,
+        "image_url": "https://..."
+      },
+      "line_total": 2399980
+    }
+  ]
+}
+
+| Status | When it happens |
+|--------|--------|
+| `400` | User ID is not a valid number |
+| `404` | No user found with that ID |
+| `500` | Database error |
+
+---
+
+### POST /api/cart
+
+Adds a product to the cart. If the product is already in the cart, the quantity is increased by the amount sent. Stock is checked before saving.
+
+**Request body:**
+{
+  "user_id": 1,
+  "product_id": "PRD-001",
+  "quantity": 1
+}
+
+| Status | When it happens |
+|--------|--------|
+| `201` | New item added to cart |
+| `200` | Item already existed — quantity updated |
+| `400` | Missing fields or quantity exceeds stock |
+| `404` | User or product not found |
+
+ PUT /api/cart
+Sets a cart item to an exact quantity. Sending `quantity: 0` removes the item.
+
+**Request body:**
+{
+  "user_id": 1,
+  "product_id": "PRD-001",
+  "quantity": 3
+}
+
+| Status | When it happens |
+|--------|--------|
+| `200` | Quantity updated or item removed |
+| `400` | Invalid quantity or exceeds stock |
+| `404` | Item not found in cart |
+
+ DELETE /api/cart/:userId/:productId
+
+Removes one product from a user's cart.
+**Example:** `DELETE /api/cart/1/PRD-001`
+
+| Status | When it happens |
+|--------|--------|
+| `200` | Item removed |
+| `404` | Item was not in the cart |
+
+ DELETE /api/cart/:userId
+
+Clears the entire cart for a user.
+
+**Example:** `DELETE /api/cart/1`
+
+**Response `200`:**
+{
+  "message": "Cart cleared.",
+  "removed_items": 3
+}
+
+ GET /api/orders/:id
+
+Returns a single order and all the products in it.
+
+**Example:** `GET /api/orders/1`
+
+**Response `200`:**
+
+{
+  "order": {
+    "id": 1,
+    "user_id": 1,
+    "total": 1199990,
+    "date": "2025-01-01 10:00:00",
+    "username": "john_doe",
+    "email": "john@example.com"
+  },
+  "items": [
+    {
+      "product_id": "PRD-001",
+      "product_name": "Apple iPhone 15 Pro",
+      "quantity": 1,
+      "price_at_purchase": 1199990
+    }
+  ]
+}
+
+
+| Status | When it happens |
+|--------|--------|
+| `200` | Order returned |
+| `404` | Order not found |
+
+ POST /api/orders
+
+Creates a new order. Everything runs inside a database transaction — if anything fails, nothing is saved.
+
+**What happens:**
+1. All product IDs are checked and prices are fetched.
+2. Stock is checked for every item. If any item does not have enough stock the whole request is rejected.
+3. The order is inserted, all line items are saved, and stock is reduced for each product.
+4. If all steps succeed the transaction is committed. If anything fails it is rolled back completely.
+
+**Request body:**
+
+{
+  "user_id": 1,
+  "items": [
+    { "product_id": "PRD-001", "quantity": 1 },
+    { "product_id": "PRD-022", "quantity": 2 }
+  ]
+}
+
+
+**Response `201`:**
+
+{
+  "message": "Order created successfully.",
+  "orderId": 5,
+  "total": 1799750,
+  "items": [
+    { "product_id": "PRD-001", "quantity": 1, "price_at_purchase": 1199990 }
+  ]
+}
+
+
+| Status | When it happens |
+|--------|--------|
+| `201` | Order created |
+| `400` | Missing fields, invalid product, or not enough stock |
+| `500` | Transaction failed |
+
+ npm Packages Used
+
+| Package | What it does |
+|---------|--------|
+| `express` | HTTP server and routing |
+| `sqlite3` | SQLite database driver |
+| `bcrypt` | Password hashing |
+| `cors` | Allows the frontend to call the API |
+| `dotenv` | Reads environment variables |
