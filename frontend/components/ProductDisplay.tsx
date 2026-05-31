@@ -1,7 +1,6 @@
 import ProductsClient from "./ProductsClient";
 
-
-/* TYPE DEFINITION - 
+/* TYPE DEFINITION -
     Tells Typescript what fields to expect from the API response.
 */
 type Product = {
@@ -9,6 +8,7 @@ type Product = {
   name: string;
   brand: string;
   category: string;
+  subCategory: string;
   price: number;
   originalPrice: number | null;
   rating: number;
@@ -21,7 +21,6 @@ const currencyFormat = new Intl.NumberFormat("en-NG", {
   currency: "NGN",
   maximumFractionDigits: 0,
 });
-
 
 async function getProducts(): Promise<Product[]> {
   try {
