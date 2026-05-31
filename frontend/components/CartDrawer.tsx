@@ -1,7 +1,6 @@
 "use client";
-// frontend/components/CartDrawer.tsx
 
-
+import Link from "next/link";
 import Image from "next/image";
 import { X, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { useCart } from "../context/CartContext";
@@ -20,12 +19,18 @@ const currencyFormat = new Intl.NumberFormat("en-NG", {
 const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   const { cart, removeFromCart, totalItems, updateQuantity } = useCart();
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalPrice = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
 
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 transition-opacity" onClick={onClose} />
+        <div
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+          onClick={onClose}
+        />
       )}
 
       <div
@@ -34,8 +39,13 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
         }`}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900">Your Cart ({totalItems})</h2>
-          <button onClick={onClose} className="hover:bg-gray-100 p-2 rounded-full transition-colors">
+          <h2 className="text-xl font-bold text-gray-900">
+            Your Cart ({totalItems})
+          </h2>
+          <button
+            onClick={onClose}
+            className="hover:bg-gray-100 p-2 rounded-full transition-colors"
+          >
             <X size={20} className="text-gray-500" />
           </button>
         </div>
@@ -49,14 +59,20 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
           ) : (
             <ul className="space-y-4 divide-y divide-gray-100">
               {cart.map((item, index) => (
-                <li key={item.id} className={`flex gap-4 items-center ${index > 0 ? "pt-4" : ""}`}>
-                  
+                <li
+                  key={item.id}
+                  className={`flex gap-4 items-center ${index > 0 ? "pt-4" : ""}`}
+                >
                   <div className="relative w-20 h-20 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shrink-0">
                     <Image
-                      src={item.image_url || "https://placehold.co/600x400/000000/FFFFFF?text=No+Image"}
+                      src={
+                        item.image_url ||
+                        "https://placehold.co/600x400/000000/FFFFFF?text=No+Image"
+                      }
                       alt={item.name}
                       fill
                       className="object-cover"
+                      unoptimized
                     />
                   </div>
 
@@ -67,7 +83,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                     <p className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
                       Brand: {item.brand}
                     </p>
-                    
+
                     <div className="flex items-center justify-between pt-0.5">
                       <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50 overflow-hidden h-7">
                         <button
@@ -76,7 +92,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                         >
                           <Minus size={12} strokeWidth={3} />
                         </button>
-                        <span className="px-2 text-xs font-bold text-gray-800 select-none min-w-[24px] text-center">
+                        <span className="px-2 text-xs font-bold text-gray-800 select-none min-w-6 text-center">
                           {item.quantity}
                         </span>
                         <button
@@ -93,7 +109,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => removeFromCart(item.id)}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
                   >
@@ -107,12 +123,20 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
         <div className="p-5 border-t border-gray-100 bg-gray-50">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold text-gray-500">Subtotal:</span>
-            <span className="text-2xl font-black text-gray-900">{currencyFormat.format(totalPrice)}</span>
+            <span className="text-sm font-semibold text-gray-500">
+              Subtotal:
+            </span>
+            <span className="text-2xl font-black text-gray-900">
+              {currencyFormat.format(totalPrice)}
+            </span>
           </div>
-          <button className="w-full bg-black text-white py-4 rounded-xl hover:bg-gray-800 transition-colors font-bold shadow-lg shadow-black/5">
+          <Link
+            href="/checkout"
+            onClick={onClose}
+            className="w-full block text-center bg-black text-white py-4 rounded-xl hover:bg-gray-800 transition-colors font-bold shadow-lg shadow-black/5"
+          >
             Proceed to Checkout
-          </button>
+          </Link>
         </div>
       </div>
     </>
