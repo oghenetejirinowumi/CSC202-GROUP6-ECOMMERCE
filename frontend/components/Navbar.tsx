@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Menu, Search, ShoppingCart, User } from "lucide-react";
 import MenuDrawer from "./Menu";
 import CartDrawer from "./CartDrawer";
@@ -9,10 +10,22 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { totalItems } = useCart();
   const { user } = useAuth();
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedQuery = searchQuery.trim();
+    if (!trimmedQuery) {
+      router.push("/");
+      return;
+    }
+    router.push(`/?search=${encodeURIComponent(trimmedQuery)}`);
+  };
 
   return (
     <>
@@ -38,14 +51,19 @@ const Navbar = () => {
         </div>
 
         <div className="flex-1 max-w-xl mx-10">
-          <div className="flex items-center w-full h-15 bg-gray-100 rounded-full px-4 border border-gray-200 focus-within:border-gray-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-gray-200 transition-all">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="flex items-center w-full h-15 bg-gray-100 rounded-full px-4 border border-gray-200 focus-within:border-gray-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-gray-200 transition-all"
+          >
             <Search size={25} className="text-gray-400 mr-2 shrink-0" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search products..."
               className="bg-transparent border-none outline-none text-lg w-full text-gray-800 placeholder:text-gray-400"
             />
-          </div>
+          </form>
         </div>
 
         <div className="flex items-center gap-6">

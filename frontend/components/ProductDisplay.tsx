@@ -37,8 +37,18 @@ async function getProducts(): Promise<Product[]> {
     return [];
   }
 }
-export default async function ProductDisplay() {
+export default async function ProductDisplay({
+  initialQuery = "",
+}: {
+  initialQuery?: string;
+}) {
   const products = await getProducts();
 
-  return <ProductsClient initialProducts={products} title="All Products" />;
+  return (
+    <ProductsClient
+      initialProducts={products}
+      title={initialQuery.trim() ? undefined : "All Products"}
+      initialQuery={initialQuery}
+    />
+  );
 }
