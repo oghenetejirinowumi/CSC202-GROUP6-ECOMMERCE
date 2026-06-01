@@ -1,0 +1,96 @@
+1.0 Frontend Documentation
+The front end gadget store application provides the user interface for customers to browse electronical products, 
+view details about then and complete purchases. It communicates with the backend API to retrieve and display data.
+
+2.0 Technologies used
+TypeScript
+React
+Node js
+
+3.0 Installation and Setup
+cd frontend
+pnpm install
+
+Troubleshooting Build Script
+if there is an error like this: ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: sharp@0.34.5, unrs-resolver@1.11.1
+try pnpm approve-builds
+
+Start frontend server
+pnpm start
+Server local network: http://localhost:3000
+server network: http://192.168.56.1:3000
+
+then open on your browser the Server local network
+
+4.0 Folder Structure
+..
+|-- app
+|-- components
+|-- context 
+|-- public
+|-- readme.md
+|-- package.json
+
+4.1 app/
+It serves as the routing and core view layer for the frontend application. It defines the path users can viit
+and handles the major e-commerce and user account functionalities.
+
+Global Configuration
+layout.tsx- the global layout for the application. It typically handles UI elements like footers and navbar
+
+page.tsx- The main entry point or landing page for the application
+
+global.css & favicon.ico: Handles the global styling rules and browser tab icons respectively
+
+Ecommerce Funnel
+categories/[category]- Dynamically lists products belonging to specific categories
+
+products/[id]- It is a dynamic route for individual product landing pages and it fetches and displays detailed 
+information for a single product
+
+checkout- handles where users review their carts, enter shipping details and finalize possible payments.
+
+User Management
+profile- The user dashboard or user management page when logged in. They can likely view their details, 
+order history and update settings.
+
+verify email- Manages account security and email verification.
+
+4.2 components/
+They are isolated pieced of the user interface that can be plugged into various pages. This folder contains modular, reusable building blocks.
+
+Navigation & Layout Elements
+navbar.tsx and menu.tsx- the main navigation bar that holds the logo the user icon and the cart trigger.
+It also handles responsive mobile menus, and site-wide routing links.
+
+E-Commerce & Shopping Experience
+cartDrawer.tsx- it lets users to see their selected items, adjust quantities and proceed to checkout without leaving their current page
+
+FeaturedProducts.tsx- It is a specialized grid used on the landing page to highlight top-selling, discounted,  or new-arrival items.
+
+ProductDisplay.tsx- Used for showing individual product cards
+
+ProductsClient.tsx-Manages interactive client-side logic for product grids, including filtering, sorting, and pagination
+
+Marketing & Engagement
+Hero.tsx- It renders the primary marketing banner and Call-to-Action on the landing page
+
+
+4.3 context/
+The context folder utilizes the React Context API. Instead of passing down through multiple levels of components via 
+props these files create global data stores. components can plug directly into these contexts to read or update data instantly
+
+AuthContext.tsx- Manages global user authentication states
+
+CartContext.tsx- Powers the e-commerce shopping engine and maintains the real-time state of items in the shopping cart
+
+
+4.4 public/
+in the public folder acts as the static asset storage for the application. Files within this folder are mapped directly to the root of the 
+application server which allows them to be referred globally using absolute paths without build-step bundling.
+
+4.5 package.json
+The `package.json` file serves as the definitive manifest for the frontend application, managing third-party packages, system scripts, and project metadata.
+
+4.6 readme.md
+Contains a clean copy of setup workflows, deployment steps, and dependencies troubleshooting documentation for incoming developers.
