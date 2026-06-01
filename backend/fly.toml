@@ -1,0 +1,23 @@
+app = "teckvora-api"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  FRONTEND_ORIGIN = "https://frontend-three-tau-36.vercel.app,http://localhost:3000"
+  APP_BASE_URL = "https://frontend-three-tau-36.vercel.app"
+
+[http_service]
+  internal_port = 10000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
