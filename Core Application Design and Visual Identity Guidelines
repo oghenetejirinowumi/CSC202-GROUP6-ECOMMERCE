@@ -1,0 +1,40 @@
+App Design and Choice
+
+1.0 Design goals and vision
+The primary goal of this application is to bridge the gap between technical electronics data and give our users a stress-free user experience.
+Instead of adopting a chaotic layout filled with loud colors, we intentionally used three main colors which give a clean-tech aesthetic.
+This design allows the user interface to "breathe."
+
+2.0 WCAG Accessibility Compliance
+Web accessibility means making sure that our application can be used by everybody, including people with disabilities such as visual and cognitive impairments.
+This design follows the WCAG 2.1, which is the global standard for web design.
+
+Our features include:
+
+Universal Iconography
+Clickable target sizes
+Clear Typography
+
+3.0 Color Theory
+Electronic and tech websites often require a high level of trust from customers. The app that was created used colors such as white and blue.
+
+Blue: Blue is used and is heavily associated with trust, stability, and intelligence. It gives a sense of professionalism and competence,
+   and it makes a company look established and dependable. Blue is also the universal language for interactivity.
+
+White: White represents clarity, efficiency, and modernism. It helps strip away visual chaos, making the brand feel transparent and honest.
+   A white background creates a sterile and focused funnel. A colorful page background can cause a user to hesitate or look away from the screen.
+
+Black: Black is used for structural grounding and it gives the highest level of authority. It makes the user interface feel integrated into the user's physical hardware,
+   making the entire browsing experience feel high-tech. Also, using a black header acts like an anchor for the page like the one we used for our website.
+
+4.0 Navigation & Interaction Design
+Top bar Navigation: It is the horizontal menu across the very top of the screen. It is the most common pattern because it is
+    where the users expect it to be when the page is loaded. It is used for universal search in case users are having problems looking for some specific items on the site.
+
+Slide Out Menu: It is represented by three stacked horizontal lines that open a navigation drawer when tapped.
+    It hides all the complex desktop navigation away and helps provide more navigation options on the website.
+
+Drop down arrows: They are represented with an upside-down arrow used to establish a parent-child relationship between the categories.
+    It is a core design used to show the user information they need at that exact moment.
+
+Sorting functions: Used to rearrange a list of items into a specific rule. They help accelerate the decision-making process of a user and help to match the user's purchasing intent.
