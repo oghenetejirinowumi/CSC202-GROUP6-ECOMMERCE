@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
+import { saveCheckoutDraft } from "../../lib/checkoutDraft";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:50000/api";
@@ -31,16 +33,21 @@ const SHIPPING_OPTIONS = {
   },
 } as const;
 
-const PAYMENT_OPTIONS = {
+type PaymentChoice = "pay_on_delivery" | "pay_online";
+
+const PAYMENT_CHOICES: Record<
+  PaymentChoice,
+  { label: string; description: string }
+> = {
   pay_on_delivery: {
     label: "Pay on delivery",
     description: "Pay when your order arrives",
   },
-  bank_transfer: {
-    label: "Bank transfer",
-    description: "Manual transfer after order placement",
+  pay_online: {
+    label: "Card or bank transfer",
+    description: "Pay now on the next step with your card or bank transfer",
   },
-} as const;
+};
 
 type AddressForm = {
   firstName: string;
@@ -73,6 +80,7 @@ const currencyFormat = new Intl.NumberFormat("en-NG", {
 });
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const { user, initialized } = useAuth();
   const { cart, currentOwnerId, refreshCart } = useCart();
 
@@ -85,8 +93,8 @@ export default function CheckoutPage() {
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
   const [shippingMethod, setShippingMethod] =
     useState<keyof typeof SHIPPING_OPTIONS>("standard");
-  const [paymentMethod, setPaymentMethod] =
-    useState<keyof typeof PAYMENT_OPTIONS>("pay_on_delivery");
+  const [paymentChoice, setPaymentChoice] =
+    useState<PaymentChoice>("pay_on_delivery");
   const [deliveryNotes, setDeliveryNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -147,29 +155,60 @@ export default function CheckoutPage() {
       address.country,
     );
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError(null);
-
+  const validateCheckoutForm = () => {
     if (!cart.length) {
       setError("Your cart is empty.");
-      return;
+      return false;
     }
 
     if (!contactEmail || !contactPhone) {
       setError("Please provide your email address and phone number.");
-      return;
+      return false;
     }
 
     if (!isAddressComplete(shippingAddress)) {
       setError("Please complete your shipping address.");
-      return;
+      return false;
     }
 
     if (!billingSameAsShipping && !isAddressComplete(billingAddress)) {
       setError("Please complete your billing address.");
-      return;
+      return false;
     }
+
+    return true;
+  };
+
+  const handleContinueToPayment = () => {
+    setError(null);
+    if (!validateCheckoutForm()) return;
+
+    saveCheckoutDraft({
+      owner_id: currentOwnerId,
+      contact: { email: contactEmail, phone: contactPhone },
+      shippingAddress,
+      billingSameAsShipping,
+      billingAddress,
+      shippingMethod,
+      deliveryNotes,
+      items: cart.map((item) => ({
+        product_id: item.id,
+        quantity: item.quantity,
+      })),
+      subtotal,
+      shippingFee,
+      taxAmount,
+      total,
+    });
+
+    router.push("/payment");
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+
+    if (!validateCheckoutForm()) return;
 
     setSubmitting(true);
 
@@ -188,7 +227,7 @@ export default function CheckoutPage() {
           billingSameAsShipping,
           billingAddress,
           shippingMethod,
-          paymentMethod,
+          paymentMethod: "pay_on_delivery",
           deliveryNotes,
           items: cart.map((item) => ({
             product_id: item.id,
@@ -555,8 +594,8 @@ export default function CheckoutPage() {
                   Delivery & payment
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Choose how you want us to deliver and how you’ll settle the
-                  order.
+                  Choose delivery speed and whether you’ll pay on delivery or
+                  online on the next page.
                 </p>
               </div>
             </div>
@@ -611,8 +650,13 @@ export default function CheckoutPage() {
                   Payment method
                 </p>
                 <div className="space-y-3">
-                  {Object.entries(PAYMENT_OPTIONS).map(([value, option]) => {
-                    const checked = paymentMethod === value;
+                  {(
+                    Object.entries(PAYMENT_CHOICES) as [
+                      PaymentChoice,
+                      (typeof PAYMENT_CHOICES)[PaymentChoice],
+                    ][]
+                  ).map(([value, option]) => {
+                    const checked = paymentChoice === value;
                     return (
                       <label
                         key={value}
@@ -621,13 +665,9 @@ export default function CheckoutPage() {
                         <div className="flex items-start gap-3">
                           <input
                             type="radio"
-                            name="paymentMethod"
+                            name="paymentChoice"
                             checked={checked}
-                            onChange={() =>
-                              setPaymentMethod(
-                                value as keyof typeof PAYMENT_OPTIONS,
-                              )
-                            }
+                            onChange={() => setPaymentChoice(value)}
                             className="mt-1"
                           />
                           <div className="flex-1">
@@ -642,15 +682,6 @@ export default function CheckoutPage() {
                       </label>
                     );
                   })}
-                </div>
-                <div className="mt-4 rounded-2xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-700">
-                  Paying by card or bank transfer?{" "}
-                  <Link
-                    href="/payment"
-                    className="font-semibold underline underline-offset-2"
-                  >
-                    Go to payment page
-                  </Link>
                 </div>
               </div>
             </div>
@@ -762,14 +793,25 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              form="checkout-form"
-              disabled={submitting}
-              className="w-full mt-6 py-4 rounded-full bg-black text-white font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
-            >
-              {submitting ? "Placing order..." : "Place order"}
-            </button>
+            {paymentChoice === "pay_on_delivery" ? (
+              <button
+                type="submit"
+                form="checkout-form"
+                disabled={submitting}
+                className="w-full mt-6 py-4 rounded-full bg-black text-white font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                {submitting ? "Placing order..." : "Place order"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleContinueToPayment}
+                disabled={submitting}
+                className="w-full mt-6 py-4 rounded-full bg-black text-white font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Continue to payment
+              </button>
+            )}
 
             <p className="text-xs text-gray-500 text-center mt-3">
               By placing your order, you agree to our store terms, delivery

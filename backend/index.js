@@ -22,7 +22,11 @@ const SHIPPING_METHODS = {
   standard: { label: "Standard Delivery", fee: 5000 },
   express: { label: "Express Delivery", fee: 12000 },
 };
-const VALID_PAYMENT_METHODS = new Set(["pay_on_delivery", "bank_transfer"]);
+const VALID_PAYMENT_METHODS = new Set([
+  "pay_on_delivery",
+  "bank_transfer",
+  "card",
+]);
 const dbPath = path.join(__dirname, "data", "gadget-store.db");
 
 app.use(
