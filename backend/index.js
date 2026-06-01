@@ -9,7 +9,11 @@ require("dotenv").config();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 50000;
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "http://localhost:3000";
+const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGIN || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const FRONTEND_ORIGIN = FRONTEND_ORIGINS[0] || "http://localhost:3000";
 const APP_BASE_URL = process.env.APP_BASE_URL || FRONTEND_ORIGIN;
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 const EMAIL_FROM = process.env.EMAIL_FROM || "";
@@ -27,11 +31,30 @@ const VALID_PAYMENT_METHODS = new Set([
   "bank_transfer",
   "card",
 ]);
-const dbPath = path.join(__dirname, "data", "gadget-store.db");
+const resolveDbPath = () => {
+  const rawUrl = process.env.DATABASE_URL || "";
+  let candidate = rawUrl.replace(/^file:/, "");
+  if (!candidate) {
+    candidate = path.join("data", "gadget-store.db");
+  }
+  if (!path.isAbsolute(candidate)) {
+    candidate = path.join(__dirname, candidate);
+  }
+  fs.mkdirSync(path.dirname(candidate), { recursive: true });
+  return candidate;
+};
+
+const dbPath = resolveDbPath();
 
 app.use(
   cors({
-    origin: FRONTEND_ORIGIN,
+    origin(origin, callback) {
+      if (!origin || FRONTEND_ORIGINS.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   }),
@@ -39,11 +62,11 @@ app.use(
 app.use(express.json());
 
 if (!fs.existsSync(dbPath)) {
-  console.error(`Database not found at: ${dbPath}`);
-  console.error(
-    "Run `npm run init-db` or `pnpm run init-db` first, then restart the API.",
+  console.log(`Database not found at ${dbPath}. Running init-db...`);
+  require("child_process").execSync(
+    path.join(__dirname, "init-db.js"),
+    { stdio: "inherit", cwd: __dirname, env: { ...process.env, DATABASE_URL: `file:${dbPath}` } },
   );
-  process.exit(1);
 }
 
 const db = new sqlite3.Database(dbPath, (error) => {

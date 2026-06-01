@@ -1,0 +1,17 @@
+# Deploy: https://render.com → New → Blueprint → connect this repo
+services:
+  - type: web
+    name: teckvora-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/products
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_ORIGIN
+        value: https://frontend-three-tau-36.vercel.app,http://localhost:3000
+      - key: APP_BASE_URL
+        value: https://frontend-three-tau-36.vercel.app
