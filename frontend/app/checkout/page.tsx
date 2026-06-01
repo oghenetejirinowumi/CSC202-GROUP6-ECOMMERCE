@@ -643,10 +643,15 @@ export default function CheckoutPage() {
                     );
                   })}
                 </div>
-                {/*<div className="mt-4 rounded-2xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-700">
-                  This demo checkout does not collect card numbers directly. Use
-                  one of the supported offline payment methods above.
-                </div>*/}
+                <div className="mt-4 rounded-2xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-700">
+                  Paying by card or bank transfer?{" "}
+                  <Link
+                    href="/payment"
+                    className="font-semibold underline underline-offset-2"
+                  >
+                    Go to payment page
+                  </Link>
+                </div>
               </div>
             </div>
           </section>
