@@ -75,7 +75,7 @@ const imageMap: { [key: string]: string } = {
   "PRD-048": "ELGATO Clavier Stream Deck Xl 10gat9901.jpg",
   "PRD-049": "Thunderbolt 4 Dock _ TS4 _ CalDigit.jpg",
   "PRD-050": "Steelseries _ _ Arctis Nova Pro Omni 2_4 GHz Wireless Over-The-Ear Gaming Headset for PC, PS5_PS4, Xbox One, Xbox X_S, Switch_Switch 2 _ Black _ Best Buy.jpg",
-  "PRD-051": "SAMSUNG 85-Inch Class QLED 4K QN90D Series Mini LED, Neo Quantum HDR+ Smart TV w_Dolby Atmos, Object Tracking Sound+, Motion Xcelerator, Real Depth Enhancer Pro, Alexa Built-in (QN85QN90D, 2024).jpg",
+  "PRD-051": "SAMSUNG 85-Inch.jpg",
   "PRD-052": "LG OLED evo AI C6 77 Inch 4K Smart TV 2026.jpg",
   "PRD-053": "sony 64 inch oled tv.jpg",
   "PRD-054": "TCL QLED.jpg",
